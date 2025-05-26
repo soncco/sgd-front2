@@ -1,17 +1,13 @@
 <template>
-  <q-page class="flex flex-center">
-    <img
-      alt="Quasar logo"
-      src="~assets/quasar-logo-vertical.svg"
-      style="width: 200px; height: 200px"
-    >
+  <q-page class="q-pa-md">
+    <h1>Bienvenido, {{ authStore.persona?.nombre_completo || 'Usuario' }}</h1>
+    <p v-if="authStore.isAdmin">Eres administrador</p>
   </q-page>
 </template>
 
-<script>
-import { defineComponent } from 'vue';
+<script setup>
+import { useAuthStore } from 'src/stores/auth'
 
-export default defineComponent({
-  name: 'IndexPage'
-});
+const authStore = useAuthStore()
+console.log(authStore)
 </script>
