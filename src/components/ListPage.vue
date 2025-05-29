@@ -1,10 +1,6 @@
 <template>
   <q-page padding>
-    <PageTitle
-      :title="titulo.title"
-      :icon="titulo.icon"
-      :buttons="titulo.buttons"
-    />
+    <PageTitle :title="titulo.title" :icon="titulo.icon" :buttons="titulo.buttons" />
     <APITable
       :endpoint="table.endpoint"
       :columns="table.columns"
@@ -15,10 +11,10 @@
 </template>
 
 <script setup>
-import APITable from "src/components/APITable.vue";
-import PageTitle from "src/components/PageTitle.vue";
+import APITable from 'src/components/APITable.vue'
+import PageTitle from 'src/components/PageTitle.vue'
 
-const props = defineProps({
+defineProps({
   titulo: {
     type: Object,
     required: true,
@@ -27,5 +23,5 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-});
+})
 </script>
