@@ -18,7 +18,6 @@ const routes = [
       {
         path: '',
         component: () => import('pages/Test.vue'),
-        meta: { requireLogin: true, groups: ['TEST'] },
       }
     ]
   },

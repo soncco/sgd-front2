@@ -1,85 +1,88 @@
 <template>
-    <q-page padding>
-      <div>Esta es la página de test</div>
-  
-      <APIEditInline
-        label="Entidad"
-        clave="entidad"
-        tipo="combo"
-        :opciones="[
-          { label: 'Opción A', value: 'A' },
-          { label: 'Opción B', value: 'B' }
-        ]"
-      />
-  
-      <APISelect
-        v-model="selectedItem"
-        :options="items"
-        label="Selecciona un ítem"
-        field="nombre"
-      />
-  
-      <!-- Aquí se prueba el componente APITable -->
-      <APITable
-        :columns="tableColumns"
-        :rowsPerPage="5"
-        :multiActions="multiActions"
-        :handleEdit="handleEdit"
-      />
-    </q-page>
-  </template>
-  
-  <script>
-  import { defineComponent } from "vue";
-  import APIEditInline from "src/components/APIEditInline.vue";
-  import APISelect from "src/components/APISelect.vue";
-  import APITable from "src/components/APITable.vue";
-  
-  export default defineComponent({
-    name: "TestPage",
-    components: {
-      APIEditInline,
-      APISelect,
-      APITable,
+  <q-page padding>
+
+    <PageTitle
+      title="Página de Test"
+      icon="mdi-test-tube"
+      iconColor="primary"
+    />
+    <SimpleTitle 
+      title="Prueba de título simple"
+    />
+
+    <!--Al montar, hace GET a api/base/opcion/{clave}.
+    Muestra el dato actual (texto, combo o archivo).
+    Al hacer clic, muestra un editor según el tipo.
+    Al guardar, hace PATCH a api/base/opcion/{clave}/ con el nuevo valor. -->
+
+    <APIEditInline
+      clave="hola"
+      label="Piero"
+    />
+
+    <APISelect
+      v-model="selectedItem"
+      label="Selecciona un ítem"
+      url="/api/base/oficinas"
+      field="nombre"
+    />
+
+    <APITable
+      endpoint="/api/base/oficinas"
+      :columns="tableColumns"
+      :handleEdit="handleEdit"
+      :multiActions="multiActions"
+    />
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+import APISelect from 'src/components/APISelect.vue'
+import APITable from "src/components/APITable.vue";
+import APIEditInline from 'src/components/APIEditInline.vue'
+import SimpleTitle from 'src/components/SimpleTitle.vue'
+import PageTitle from 'src/components/PageTitle.vue'
+
+export default defineComponent({
+  name: 'TestPage',
+  components: {
+    APIEditInline,
+    APISelect,
+    APITable,
+    SimpleTitle,
+    PageTitle,
+  },
+  data() {
+    return {
+      selectedItem: null,
+      tableColumns: [
+        { name: 'id', label: 'ID', field: 'id', align: 'left', sortable: true },
+        { name: 'nombre', label: 'Nombre Oficina', field: 'nombre', align: 'left', sortable: true },
+        { name: 'depende_de', label: 'Depende de', field: 'depende_de', align: 'left', sortable: true },
+      ],
+      multiActions: [
+        {
+          label: 'Ver detalles',
+          icon: 'visibility',
+          color: 'primary',
+          textColor: 'white',
+          action: (row) => console.log('Ver detalles de:', row),
+        },
+        {
+          label: 'Eliminar',
+          icon: 'delete',
+          color: 'red',
+          textColor: 'white',
+          action: (row) => console.log('Eliminar:', row),
+        },
+      ],
+    }
+  },
+  methods: {
+    handleEdit(row) {
+      console.log('Editar:', row)
     },
-    data() {
-      return {
-        selectedItem: null,
-        items: [
-          { id: 1, nombre: "Item 1" },
-          { id: 2, nombre: "Item 2" },
-          { id: 3, nombre: "Item 3" },
-        ],
-        tableColumns: [
-          { name: "id", label: "ID", field: "id", align: "left", sortable: true },
-          { name: "name", label: "Nombre", field: "name", align: "left", sortable: true },
-          { name: "role", label: "Rol", field: "role", align: "left", sortable: true },
-          { name: "actions", label: "Acciones", field: "actions" },
-          { name: "multiactions", label: "Más acciones", field: "multiactions" },
-        ],
-        multiActions: [
-          {
-            label: "Ver detalles",
-            icon: "visibility",
-            color: "primary",
-            textColor: "white",
-            action: (row) => console.log("Ver detalles de:", row),
-          },
-          {
-            label: "Eliminar",
-            icon: "delete",
-            color: "red",
-            textColor: "white",
-            action: (row) => console.log("Eliminar:", row),
-          },
-        ],
-      };
-    },
-    methods: {
-      handleEdit(row) {
-        console.log("Editar:", row);
-      },
-    },
-  });
-  </script>
-  
+  },
+})
+</script>
