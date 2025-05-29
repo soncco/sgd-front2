@@ -10,6 +10,18 @@ const routes = [
     component: () => import('layouts/AuthLayout.vue'),
     children: [{ path: '', component: () => import('pages/LoginPage.vue') }],
   },
+
+  {
+    path: '/test',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      {
+        path: '',
+        component: () => import('pages/Test.vue'),
+      }
+    ]
+  },
+  
   {
     path: '/:catchAll(.*)*',
     component: () => import('layouts/MainLayout.vue'),
