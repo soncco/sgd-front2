@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md">
-    <h1>Bienvenido, {{ authStore.persona?.nombre_completo || 'Usuario' }}</h1>
+    <h1>Bienvenido, {{ authStore.user.username || 'Usuario' }}</h1>
     <p v-if="authStore.isAdmin">Eres administrador</p>
   </q-page>
 </template>
