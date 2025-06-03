@@ -2,7 +2,11 @@ const routes = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
+    children: [
+      { path: '', component: () => import('pages/IndexPage.vue') },
+      { path: 'oficinas', component: () => import('pages/sistema/OficinasPage.vue') },
+      { path: 'tipos-documento', component: () => import('pages/sistema/TiposDocumentoPage.vue') },
+    ],
     meta: { requiresAuth: true },
   },
   {
@@ -10,9 +14,6 @@ const routes = [
     component: () => import('layouts/AuthLayout.vue'),
     children: [{ path: '', component: () => import('pages/LoginPage.vue') }],
   },
-
-  // SISTEMA
-
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
@@ -25,8 +26,6 @@ const routes = [
       },
     ],
   },
-
-  // TEST
   {
     path: '/test',
     component: () => import('layouts/MainLayout.vue'),
