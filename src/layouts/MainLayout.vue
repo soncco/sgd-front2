@@ -109,6 +109,7 @@ const menu = ref([
     subMenu: [
       { label: 'Oficinas', route: '/oficinas' },
       { label: 'Tipos de documento', route: '/tipos-documento' },
+      { label: 'Acciones', route: '/acciones' },
       { label: 'Personas', route: '/personas' },
       { label: 'Opciones del sistema', route: '/opciones' },
     ],

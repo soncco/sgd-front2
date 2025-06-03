@@ -6,6 +6,7 @@ const routes = [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'oficinas', component: () => import('pages/sistema/OficinasPage.vue') },
       { path: 'tipos-documento', component: () => import('pages/sistema/TiposDocumentoPage.vue') },
+      { path: 'acciones', component: () => import('pages/sistema/AccionesPage.vue') },
     ],
     meta: { requiresAuth: true },
   },
