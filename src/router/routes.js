@@ -15,14 +15,26 @@ const routes = [
     children: [{ path: '', component: () => import('pages/LoginPage.vue') }],
   },
   {
+    path: '/',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      {
+        path: 'opciones',
+        component: () => import('pages/sistema/OpcionPage.vue'),
+        props: true,
+        meta: { requireLogin: true, groups: ['Administradores'] },
+      },
+    ],
+  },
+  {
     path: '/test',
     component: () => import('layouts/MainLayout.vue'),
     children: [
       {
         path: '',
         component: () => import('pages/Test.vue'),
-      }
-    ]
+      },
+    ],
   },
 
   {
