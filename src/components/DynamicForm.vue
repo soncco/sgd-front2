@@ -2,6 +2,7 @@
   <q-form @submit.prevent="handleSubmit" class="q-pa-md">
     <div v-for="field in fields" :key="field.field">
       <q-input
+        v-if="field.type !== 'apiselect'"
         v-model="formData[field.field]"
         :label="field.label"
         :type="field.type"
@@ -9,16 +10,26 @@
         :error="!!errors[field.field]"
         :error-message="errors[field.field] ? errors[field.field][0] : ''"
       />
+      <APISelect
+        v-else-if="field.type === 'apiselect'"
+        v-model="formData[field.field]"
+        :field="field.comboField"
+        :url="field.url"
+        :label="field.label"
+        :default-ids="getDefaultId(field.field)"
+      />
     </div>
     <q-btn type="submit" label="Guardar" color="primary" :loading="loading" />
   </q-form>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { api } from 'boot/axios'
 import { Notify } from 'quasar'
 import { useRouter } from 'vue-router'
+
+import APISelect from 'src/components/APISelect.vue'
 
 const props = defineProps({
   endpoint: {
@@ -93,6 +104,19 @@ const handleSubmit = async () => {
   }
 }
 
+const getDefaultId = (fieldName) => {
+  const val = formData.value[fieldName]
+  return val ? [val.id || val] : []
+}
+
 // Llama a `fetchData` al montar el componente
 onMounted(fetchData)
+
+watch(
+  () => formData.value,
+  (newVal) => {
+    console.log('Form data updated:', newVal)
+  },
+  { immediate: true },
+)
 </script>

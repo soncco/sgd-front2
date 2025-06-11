@@ -3,48 +3,55 @@
 </template>
 
 <script setup>
-import { useRouter } from "vue-router";
-import ListPage from "src/components/ListPage.vue";
+import { useRouter } from 'vue-router'
+import ListPage from 'src/components/ListPage.vue'
 
-const router = useRouter();
+const router = useRouter()
 
 const titulo = {
-  title: "Oficinas",
-  icon: "list",
+  title: 'Oficinas',
+  icon: 'list',
   buttons: [
     {
-      label: "Agregar Oficina",
-      icon: "add",
-      route: "/oficina/nuevo",
+      label: 'Agregar Oficina',
+      icon: 'add',
+      route: '/oficina/nuevo',
     },
   ],
-};
+}
 
 const columns = [
   {
-    name: "abreviatura",
-    label: "Abreviatura",
-    align: "left",
-    field: "abreviatura",
+    name: 'nombre',
+    label: 'Nombre',
+    align: 'left',
+    field: 'nombre',
     sortable: true,
   },
   {
-    name: "nombre",
-    label: "Nombre",
-    align: "left",
-    field: "nombre",
+    name: 'abreviatura',
+    label: 'Abreviatura',
+    align: 'left',
+    field: 'abreviatura',
     sortable: true,
   },
-  { name: "actions", label: "Acciones", align: "center" },
-];
+  {
+    name: 'depende_de',
+    label: 'Depende de',
+    align: 'left',
+    field: 'depende_de_nombre',
+    sortable: true,
+  },
+  { name: 'actions', label: 'Acciones', align: 'center' },
+]
 
 const editOficina = (row) => {
-  router.push(`/oficina/editar/${row.id}`);
-};
+  router.push(`/oficina/editar/${row.id}`)
+}
 
 const table = {
-  endpoint: "/api/base/oficinas/",
+  endpoint: '/api/base/oficinas/',
   columns,
   handleEdit: editOficina,
-};
+}
 </script>

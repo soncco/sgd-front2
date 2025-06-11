@@ -119,11 +119,14 @@ const menu = ref([
 const authStore = useAuthStore()
 const me = computed(() => authStore.user)
 
-watch(authStore.isAuthenticated, (newVal) => {
-  if (newVal) {
-    drawer.value = true
-  }
-})
+watch(
+  () => authStore.isAuthenticated,
+  (newVal) => {
+    if (newVal) {
+      drawer.value = true
+    }
+  },
+)
 
 const onLogout = () => {
   authStore.logout()

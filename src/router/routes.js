@@ -14,12 +14,22 @@ const routes = [
         component: () => import('pages/sistema/NuevoTipoDocumento.vue'),
       },
       { path: 'oficina/nuevo', component: () => import('pages/sistema/NuevaOficina.vue') },
-      { path: 'oficina/editar/:id', component: () => import('pages/sistema/EditarOficina.vue') },
+      {
+        path: 'oficina/editar/:id',
+        component: () => import('pages/sistema/EditarOficina.vue'),
+        props: true,
+      },
 
-      { path: 'oficina/editar/:id', component: () => import('src/pages/sistema/EditarOficina.vue'), props: true },
-      { path: 'tipos-documento/editar/:id', component: () => import('pages/sistema/EditarTipoDocumento.vue'), props: true },
-      { path: 'accion/editar/:id', component: () => import('pages/sistema/EditarAccion.vue'), props: true },
-
+      {
+        path: 'tipos-documento/editar/:id',
+        component: () => import('pages/sistema/EditarTipoDocumento.vue'),
+        props: true,
+      },
+      {
+        path: 'accion/editar/:id',
+        component: () => import('pages/sistema/EditarAccion.vue'),
+        props: true,
+      },
     ],
 
     meta: { requiresAuth: true },
