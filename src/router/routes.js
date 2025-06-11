@@ -7,10 +7,21 @@ const routes = [
       { path: 'oficinas', component: () => import('pages/sistema/OficinasPage.vue') },
       { path: 'tipos-documento', component: () => import('pages/sistema/TiposDocumentoPage.vue') },
       { path: 'acciones', component: () => import('pages/sistema/AccionesPage.vue') },
+
+      { path: 'accion/nuevo', component: () => import('pages/sistema/NuevaAccion.vue') },
+      {
+        path: 'tipos-documento/nuevo',
+        component: () => import('pages/sistema/NuevoTipoDocumento.vue'),
+      },
+      { path: 'oficina/nuevo', component: () => import('pages/sistema/NuevaOficina.vue') },
+      { path: 'oficina/editar/:id', component: () => import('pages/sistema/EditarOficina.vue') },
+
       { path: 'oficina/editar/:id', component: () => import('src/pages/sistema/EditarOficina.vue'), props: true },
       { path: 'tipos-documento/editar/:id', component: () => import('pages/sistema/EditarTipoDocumento.vue'), props: true },
       { path: 'accion/editar/:id', component: () => import('pages/sistema/EditarAccion.vue'), props: true },
+
     ],
+
     meta: { requiresAuth: true },
   },
   {
