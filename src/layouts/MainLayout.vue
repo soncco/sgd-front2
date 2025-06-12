@@ -110,6 +110,7 @@ const menu = ref([
       { label: 'Oficinas', route: '/oficinas' },
       { label: 'Tipos de documento', route: '/tipos-documento' },
       { label: 'Acciones', route: '/acciones' },
+      { label: 'Cargos', route: '/cargos' },
       { label: 'Personas', route: '/personas' },
       { label: 'Opciones del sistema', route: '/opciones' },
     ],

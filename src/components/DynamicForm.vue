@@ -17,6 +17,7 @@
         :url="field.url"
         :label="field.label"
         :default-ids="getDefaultId(field.field)"
+        :multiple="field.multiple || false"
       />
     </div>
     <q-btn type="submit" label="Guardar" color="primary" :loading="loading" />

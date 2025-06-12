@@ -291,7 +291,13 @@ watch(
 watch(
   () => props.defaultIds?.join(','),
   (val) => {
-    if (val) {
+    if (!val) return
+
+    const hasSelection = props.multiple
+      ? Array.isArray(model.value) && model.value.length > 0
+      : model.value !== null && model.value !== undefined
+
+    if (!hasSelection) {
       fetchDefaultData()
     }
   },
