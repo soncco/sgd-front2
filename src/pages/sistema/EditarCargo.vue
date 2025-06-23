@@ -14,26 +14,35 @@ const props = defineProps({
 
 const fields = [
   { field: 'nombre', label: 'Nombre', type: 'text' },
-  { field: 'abreviatura', label: 'Abreviatura', type: 'text' },
+  { field: 'descripcion', label: 'Descripción', type: 'text' },
   {
-    field: 'depende_de',
+    field: 'tipos_documento_permitidos',
     comboField: 'nombre',
-    label: 'Depende de',
+    label: 'Tipos de Documento Permitidos',
     type: 'apiselect',
-    url: '/api/base/oficinas/',
+    url: '/api/base/tipos-documento/',
+    multiple: true,
+  },
+  {
+    field: 'acciones_permitidas',
+    comboField: 'nombre',
+    label: 'Acciones Permitidas',
+    type: 'apiselect',
+    url: '/api/base/acciones/',
+    multiple: true,
   },
 ]
 
 const titulo = {
-  title: 'Editar Oficina',
+  title: 'Editar Cargo',
   icon: 'edit',
-  buttons: [{ label: 'Ver todas las Oficinas', icon: 'list', route: '/oficinas' }],
+  buttons: [{ label: 'Ver todos los cargos', icon: 'list', route: '/cargos' }],
 }
 
 const form = {
-  endpoint: `/api/base/oficinas/${props.id}/`,
+  endpoint: `/api/base/cargos/${props.id}/`,
   fields,
-  urlLista: '/oficinas',
+  urlLista: '/cargos',
   isEdit: true,
 }
 </script>
