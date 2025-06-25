@@ -55,6 +55,7 @@
               @keypress="soloNumeros"
             />
             <q-input
+              v-if="!isEdit"
               outlined
               required
               v-model="info.email"
@@ -67,8 +68,9 @@
           </div>
 
           <div class="col-6 q-gutter-md">
-            <SimpleTitle title="Credenciales" />
+            <SimpleTitle v-if="!isEdit" title="Credenciales" />
             <q-input
+              v-if="!isEdit" 
               outlined
               required
               type="username"
@@ -79,6 +81,7 @@
               :error="errores.username"
             />
             <q-input
+              v-if="!isEdit" 
               outlined
               required
               type="password"
@@ -97,7 +100,7 @@
               >
                 <div class="relative-position q-pa-sm bg-grey-1 rounded-borders">
                   <q-btn
-                    v-if="info.asignaciones_cargo.length > 1"
+                    v-if="info.asignaciones_cargo.length > 0"
                     round
                     unelevated
                     color="negative"
@@ -158,13 +161,17 @@
 
 <script setup>
 import { reactive, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { api } from 'src/boot/axios'
 import PageTitle from 'src/components/PageTitle.vue'
 import APISelect from 'src/components/APISelect.vue'
 import SimpleTitle from 'src/components/SimpleTitle.vue'
+import { useQuasar } from 'quasar'
 
 const route = useRoute()
+const router = useRouter()
+const $q = useQuasar()
+
 const id = route.params.id
 const isEdit = !!id
 
@@ -221,6 +228,7 @@ const fetchData = () => {
     .get(endpoint)
     .then((response) => {
       Object.assign(info, response.data)
+      console.log(response.data)
     })
     .catch((error) => {
       console.log(error)
@@ -274,6 +282,11 @@ const submitForm = () => {
   } else {
     saveData()
   }
+  router.push('/personas')
+  $q.notify({
+    type: "info",
+    message: "Persona actualizada correctamente.",
+  });
 }
 
 if (isEdit) {
