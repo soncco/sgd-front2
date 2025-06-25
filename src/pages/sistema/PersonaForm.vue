@@ -52,6 +52,7 @@
               maxlength="9"
               :error-message="errores_texto.celular"
               :error="errores.celular"
+              @keypress="soloNumeros"
             />
             <q-input
               outlined
@@ -64,6 +65,7 @@
               type="email"
             />
           </div>
+
           <div class="col-6 q-gutter-md">
             <SimpleTitle title="Credenciales" />
             <q-input
@@ -86,37 +88,55 @@
               :error-message="errores_texto.password"
               :error="errores.password"
             />
-            <div class="row q-col-gutter-md q-mt-xs">
-              <div class="col-12">
-                <SimpleTitle title="Asignaciones de Cargos" />
+            <SimpleTitle title="Asignaciones de Cargos" />
+            <div class="row q-gutter-x-xs q-mt-md">
+              <div
+                v-for="(asignacion, index) in info.asignaciones_cargo"
+                :key="index"
+                class="col-12"
+              >
+                <div class="relative-position q-pa-sm bg-grey-1 rounded-borders">
+                  <q-btn
+                    v-if="info.asignaciones_cargo.length > 1"
+                    round
+                    unelevated
+                    color="negative"
+                    text-color="white"
+                    icon="delete"
+                    size="sm"
+                    class="absolute z-top"
+                    style="top: -5px; right: -5px"
+                    @click="removeAsignacion(index)"
+                    aria-label="Eliminar asignación"
+                  />
+                  <div class="row q-col-gutter-md">
+                    <div class="col-6">
+                      <APISelect
+                        v-model="asignacion.cargo"
+                        label="Cargo"
+                        url="/api/base/cargos/"
+                        field="nombre"
+                        :creatable="true"
+                        create-endpoint="/api/base/cargos/"
+                        :create-fields="[{ field: 'nombre', label: 'Nombre del cargo', type: 'text' }]"
+                        dense
+                      />
+                    </div>
+                    <div class="col-6">
+                      <APISelect
+                        v-model="asignacion.oficina"
+                        label="Oficina"
+                        url="/api/base/oficinas/"
+                        field="nombre"
+                        :creatable="true"
+                        create-endpoint="/api/base/oficinas/"
+                        :create-fields="[{ field: 'nombre', label: 'Nombre de oficina', type: 'text' }]"
+                        dense
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              <template v-for="(asignacion, index) in info.asignaciones_cargo" :key="index">
-                <div class="col-6">
-                  <APISelect
-                    v-model="asignacion.cargo"
-                    label="Cargo"
-                    url="/api/base/cargos/"
-                    field="nombre"
-                    :creatable="true"
-                    create-endpoint="/api/base/cargos/"
-                    :create-fields="[{ field: 'nombre', label: 'Nombre del cargo', type: 'text' }]"
-                    dense
-                  />
-                </div>
-                <div class="col-6">
-                  <APISelect
-                    v-model="asignacion.oficina"
-                    label="Oficina"
-                    url="/api/base/oficinas/"
-                    field="nombre"
-                    :creatable="true"
-                    create-endpoint="/api/base/oficinas/"
-                    :create-fields="[{ field: 'nombre', label: 'Nombre de oficina', type: 'text' }]"
-                    dense
-                  />
-                </div>
-              </template>
 
               <div class="col-12 flex flex-center">
                 <q-btn
@@ -146,7 +166,6 @@ import SimpleTitle from 'src/components/SimpleTitle.vue'
 
 const route = useRoute()
 const id = route.params.id
-
 const isEdit = !!id
 
 const titulo = reactive({
@@ -174,10 +193,13 @@ const info = reactive({
 })
 
 function addAsignacion() {
-  info.asignaciones_cargo.push({
-    cargo: null,
-    oficina: null,
-  })
+  info.asignaciones_cargo.push({ cargo: null, oficina: null })
+}
+
+function removeAsignacion(index) {
+  if (info.asignaciones_cargo.length > 1) {
+    info.asignaciones_cargo.splice(index, 1)
+  }
 }
 
 const errores = reactive({})
@@ -192,9 +214,8 @@ const optionsDoc = [
   { label: 'Permiso temporal del permanencia', value: '6' },
 ]
 
-// Si estás editando: obtiene info de /personas/:id/.
-// Si estás creando: envia POST a /persona-usuario/
 const endpoint = isEdit ? `/api/base/personas/${id}/` : '/api/base/persona-usuario/'
+
 const fetchData = () => {
   api
     .get(endpoint)
@@ -209,23 +230,14 @@ const fetchData = () => {
 const modifyData = async () => {
   Object.keys(errores).forEach((k) => (errores[k] = false))
   Object.keys(errores_texto).forEach((k) => (errores_texto[k] = ''))
-
   try {
-    // Clona los datos excepto asignaciones
     const payload = { ...info }
-
-    // Solo enviar asignaciones nuevas (sin ID)
-    payload.asignaciones_cargo = info.asignaciones_cargo.filter((asignacion) => !asignacion.id)
-
-    // Si no hay asignaciones nuevas, elimina el campo
-    if (payload.asignaciones_cargo.length === 0) {
-      delete payload.asignaciones_cargo
-    }
-
+    payload.asignaciones_cargo = info.asignaciones_cargo.filter((a) => !a.id)
+    if (payload.asignaciones_cargo.length === 0) delete payload.asignaciones_cargo
     const response = await api.patch(endpoint, payload)
     console.log('Modificación exitosa:', response.data)
   } catch (error) {
-    if (error.response && error.response.status === 400) {
+    if (error.response?.status === 400) {
       const data = error.response.data
       Object.entries(data).forEach(([field, msg]) => {
         errores[field] = true
@@ -244,7 +256,7 @@ const saveData = async () => {
     const response = await api.post(endpoint, info)
     console.log('Guardado exitoso:', response.data)
   } catch (error) {
-    if (error.response && error.response.status === 400) {
+    if (error.response && error.response.status === 400)  {
       const data = error.response.data
       Object.entries(data).forEach(([field, msg]) => {
         errores[field] = true
