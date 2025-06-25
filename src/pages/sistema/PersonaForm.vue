@@ -158,13 +158,15 @@
 
 <script setup>
 import { reactive, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { Notify } from 'quasar'
+import { useRoute, useRouter } from 'vue-router'
 import { api } from 'src/boot/axios'
 import PageTitle from 'src/components/PageTitle.vue'
 import APISelect from 'src/components/APISelect.vue'
 import SimpleTitle from 'src/components/SimpleTitle.vue'
 
 const route = useRoute()
+const router = useRouter()
 const id = route.params.id
 const isEdit = !!id
 
@@ -234,8 +236,9 @@ const modifyData = async () => {
     const payload = { ...info }
     payload.asignaciones_cargo = info.asignaciones_cargo.filter((a) => !a.id)
     if (payload.asignaciones_cargo.length === 0) delete payload.asignaciones_cargo
-    const response = await api.patch(endpoint, payload)
-    console.log('Modificación exitosa:', response.data)
+
+    await api.patch(endpoint, payload)
+    return true
   } catch (error) {
     if (error.response?.status === 400) {
       const data = error.response.data
@@ -246,17 +249,19 @@ const modifyData = async () => {
     } else {
       console.error('Error desconocido al modificar:', error)
     }
+    return false
   }
 }
+
 
 const saveData = async () => {
   Object.keys(errores).forEach((k) => (errores[k] = false))
   Object.keys(errores_texto).forEach((k) => (errores_texto[k] = ''))
   try {
-    const response = await api.post(endpoint, info)
-    console.log('Guardado exitoso:', response.data)
+    await api.post(endpoint, info)
+    return true
   } catch (error) {
-    if (error.response && error.response.status === 400)  {
+    if (error.response && error.response.status === 400) {
       const data = error.response.data
       Object.entries(data).forEach(([field, msg]) => {
         errores[field] = true
@@ -265,16 +270,28 @@ const saveData = async () => {
     } else {
       console.error('Error desconocido:', error)
     }
+    return false
   }
 }
 
-const submitForm = () => {
-  if (isEdit) {
-    modifyData()
-  } else {
-    saveData()
+const submitForm = async () => {
+  const success = isEdit ? await modifyData() : await saveData()
+
+  if (success) {
+    Notify.create({
+      type: 'positive',
+      message: isEdit ? 'Persona modificada con éxito' : 'Persona guardada con éxito',
+    })
+
+    router.push('/personas')
+  } else {  
+    Notify.create({
+      type: 'negative',
+      message: 'Revisa los errores en el formulario.',
+    })
   }
 }
+
 
 if (isEdit) {
   onMounted(fetchData)
