@@ -4,10 +4,21 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
+      /*
       { path: 'accion/nuevo', component: () => import('pages/sistema/NuevaAccion.vue') },
       {
         path: 'accion/editar/:id',
         component: () => import('pages/sistema/EditarAccion.vue'),
+        props: true,
+      },
+      */
+      {
+        path: 'accion/nuevo',
+        component: () => import('pages/sistema/AccionForm.vue'),
+      },
+      {
+        path: 'accion/editar/:id',
+        component: () => import('pages/sistema/AccionForm.vue'),
         props: true,
       },
       { path: 'acciones', component: () => import('pages/sistema/AccionesPage.vue') },
@@ -38,6 +49,9 @@ const routes = [
       },
       { path: 'cargos', component: () => import('pages/sistema/CargosPage.vue') },
       { path: 'tipos-documento', component: () => import('pages/sistema/TiposDocumentoPage.vue') },
+      { path: 'personas', component: () => import('pages/sistema/PersonasPage.vue') },
+      { path: 'persona/nuevo', component: () => import('src/pages/sistema/PersonaForm.vue') },
+      { path: 'persona/editar/:id', component: () => import('src/pages/sistema/PersonaForm.vue'), props: true },
     ],
     meta: { requiresAuth: true },
   },
