@@ -55,6 +55,7 @@
               @keypress="soloNumeros"
             />
             <q-input
+              v-if="!isEdit"
               outlined
               required
               v-model="info.email"
@@ -67,18 +68,9 @@
           </div>
 
           <div class="col-6 q-gutter-md">
-            <SimpleTitle title="Credenciales" />
+            <SimpleTitle v-if="!isEdit" title="Credenciales" />
             <q-input
-              outlined
-              required
-              type="username"
-              v-model="info.username"
-              label="Usuario"
-              maxlength="150"
-              :error-message="errores_texto.username"
-              :error="errores.username"
-            />
-            <q-input
+              v-if="!isEdit" 
               outlined
               required
               type="password"
@@ -258,7 +250,9 @@ const saveData = async () => {
   Object.keys(errores).forEach((k) => (errores[k] = false))
   Object.keys(errores_texto).forEach((k) => (errores_texto[k] = ''))
   try {
-    await api.post(endpoint, info)
+    const payload = { ...info }
+    payload.username = info.documento
+    await api.post(endpoint, payload)
     return true
   } catch (error) {
     if (error.response && error.response.status === 400) {
