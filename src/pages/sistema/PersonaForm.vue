@@ -49,10 +49,9 @@
               required
               v-model="info.celular"
               label="Celular"
-              maxlength="9"
+              maxlength="15"
               :error-message="errores_texto.celular"
               :error="errores.celular"
-              @keypress="soloNumeros"
             />
             <q-input
               v-if="!isEdit"
@@ -70,7 +69,7 @@
           <div class="col-6 q-gutter-md">
             <SimpleTitle v-if="!isEdit" title="Credenciales" />
             <q-input
-              v-if="!isEdit" 
+              v-if="!isEdit"
               outlined
               required
               type="password"
@@ -110,7 +109,9 @@
                         field="nombre"
                         :creatable="true"
                         create-endpoint="/api/base/cargos/"
-                        :create-fields="[{ field: 'nombre', label: 'Nombre del cargo', type: 'text' }]"
+                        :create-fields="[
+                          { field: 'nombre', label: 'Nombre del cargo', type: 'text' },
+                        ]"
                         dense
                       />
                     </div>
@@ -122,7 +123,9 @@
                         field="nombre"
                         :creatable="true"
                         create-endpoint="/api/base/oficinas/"
-                        :create-fields="[{ field: 'nombre', label: 'Nombre de oficina', type: 'text' }]"
+                        :create-fields="[
+                          { field: 'nombre', label: 'Nombre de oficina', type: 'text' },
+                        ]"
                         dense
                       />
                     </div>
@@ -245,7 +248,6 @@ const modifyData = async () => {
   }
 }
 
-
 const saveData = async () => {
   Object.keys(errores).forEach((k) => (errores[k] = false))
   Object.keys(errores_texto).forEach((k) => (errores_texto[k] = ''))
@@ -278,14 +280,13 @@ const submitForm = async () => {
     })
 
     router.push('/personas')
-  } else {  
+  } else {
     Notify.create({
       type: 'negative',
       message: 'Revisa los errores en el formulario.',
     })
   }
 }
-
 
 if (isEdit) {
   onMounted(fetchData)
