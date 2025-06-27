@@ -87,19 +87,7 @@
                 class="col-12"
               >
                 <div class="relative-position q-pa-sm bg-grey-1 rounded-borders">
-                  <q-btn
-                    v-if="info.asignaciones_cargo.length > 1"
-                    round
-                    unelevated
-                    color="negative"
-                    text-color="white"
-                    icon="delete"
-                    size="sm"
-                    class="absolute z-top"
-                    style="top: -5px; right: -5px"
-                    @click="removeAsignacion(index)"
-                    aria-label="Eliminar asignación"
-                  />
+                
                   <div class="row q-col-gutter-md">
                     <div class="col-6">
                       <APISelect
@@ -193,11 +181,6 @@ function addAsignacion() {
   info.asignaciones_cargo.push({ cargo: null, oficina: null })
 }
 
-function removeAsignacion(index) {
-  if (info.asignaciones_cargo.length > 1) {
-    info.asignaciones_cargo.splice(index, 1)
-  }
-}
 
 const errores = reactive({})
 const errores_texto = reactive({})
