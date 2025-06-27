@@ -49,12 +49,12 @@
               required
               v-model="info.celular"
               label="Celular"
-              maxlength="9"
+              maxlength="15"
               :error-message="errores_texto.celular"
               :error="errores.celular"
-              @keypress="soloNumeros"
             />
             <q-input
+              v-if="!isEdit"
               outlined
               required
               v-model="info.email"
@@ -67,18 +67,9 @@
           </div>
 
           <div class="col-6 q-gutter-md">
-            <SimpleTitle title="Credenciales" />
+            <SimpleTitle v-if="!isEdit" title="Credenciales" />
             <q-input
-              outlined
-              required
-              type="username"
-              v-model="info.username"
-              label="Usuario"
-              maxlength="150"
-              :error-message="errores_texto.username"
-              :error="errores.username"
-            />
-            <q-input
+              v-if="!isEdit"
               outlined
               required
               type="password"
@@ -96,19 +87,7 @@
                 class="col-12"
               >
                 <div class="relative-position q-pa-sm bg-grey-1 rounded-borders">
-                  <q-btn
-                    v-if="info.asignaciones_cargo.length > 1"
-                    round
-                    unelevated
-                    color="negative"
-                    text-color="white"
-                    icon="delete"
-                    size="sm"
-                    class="absolute z-top"
-                    style="top: -5px; right: -5px"
-                    @click="removeAsignacion(index)"
-                    aria-label="Eliminar asignación"
-                  />
+                
                   <div class="row q-col-gutter-md">
                     <div class="col-6">
                       <APISelect
@@ -118,7 +97,9 @@
                         field="nombre"
                         :creatable="true"
                         create-endpoint="/api/base/cargos/"
-                        :create-fields="[{ field: 'nombre', label: 'Nombre del cargo', type: 'text' }]"
+                        :create-fields="[
+                          { field: 'nombre', label: 'Nombre del cargo', type: 'text' },
+                        ]"
                         dense
                       />
                     </div>
@@ -130,7 +111,9 @@
                         field="nombre"
                         :creatable="true"
                         create-endpoint="/api/base/oficinas/"
-                        :create-fields="[{ field: 'nombre', label: 'Nombre de oficina', type: 'text' }]"
+                        :create-fields="[
+                          { field: 'nombre', label: 'Nombre de oficina', type: 'text' },
+                        ]"
                         dense
                       />
                     </div>
@@ -198,11 +181,6 @@ function addAsignacion() {
   info.asignaciones_cargo.push({ cargo: null, oficina: null })
 }
 
-function removeAsignacion(index) {
-  if (info.asignaciones_cargo.length > 1) {
-    info.asignaciones_cargo.splice(index, 1)
-  }
-}
 
 const errores = reactive({})
 const errores_texto = reactive({})
@@ -253,12 +231,13 @@ const modifyData = async () => {
   }
 }
 
-
 const saveData = async () => {
   Object.keys(errores).forEach((k) => (errores[k] = false))
   Object.keys(errores_texto).forEach((k) => (errores_texto[k] = ''))
   try {
-    await api.post(endpoint, info)
+    const payload = { ...info }
+    payload.username = info.documento
+    await api.post(endpoint, payload)
     return true
   } catch (error) {
     if (error.response && error.response.status === 400) {
@@ -284,14 +263,13 @@ const submitForm = async () => {
     })
 
     router.push('/personas')
-  } else {  
+  } else {
     Notify.create({
       type: 'negative',
       message: 'Revisa los errores en el formulario.',
     })
   }
 }
-
 
 if (isEdit) {
   onMounted(fetchData)

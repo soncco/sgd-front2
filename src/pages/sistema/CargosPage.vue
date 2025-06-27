@@ -28,6 +28,13 @@ const columns = [
     field: 'nombre',
     sortable: true,
   },
+  {
+    name: 'descripcion',
+    label: 'Descripción',
+    align: 'left',
+    field: 'descripcion',
+    sortable: true,
+  },
   { name: 'actions', label: 'Acciones', align: 'center' },
 ]
 
