@@ -74,10 +74,25 @@
               required
               type="password"
               v-model="info.password"
-              label="Contraseña"
+              label="Contraseña"  
               maxlength="150"
               :error-message="errores_texto.password"
               :error="errores.password"
+
+
+            />
+            <q-input
+              v-if="!isEdit"
+              outlined
+              required
+              type="password"
+              v-model="info.password_repeat"
+              label="Contraseña otra vez"  
+              maxlength="150"
+              :error-message="errores_texto.password"
+              :error="errores.password"
+
+              
             />
             <SimpleTitle title="Asignaciones de Cargos" />
             <div class="row q-gutter-x-xs q-mt-md">
@@ -162,6 +177,7 @@ const titulo = reactive({
 const info = reactive({
   username: '',
   password: '',
+  password_repeat: '',
   email: '',
   nombres: '',
   apellidos: '',
@@ -255,7 +271,23 @@ const saveData = async () => {
 
 const submitForm = async () => {
   const success = isEdit ? await modifyData() : await saveData()
+  if (!isEdit) {
+    if (info.password !== info.password_repeat) {
+      Notify.create({
+        type: 'negative',
+        message: 'Las contraseñas no coinciden.',
+      })
+      return
+    }
 
+    if (info.password === info.documento) {
+      Notify.create({
+        type: 'negative',
+        message: 'La contraseña no puede ser igual al número de documento.',
+      })
+      return
+    }
+  }
   if (success) {
     Notify.create({
       type: 'positive',
