@@ -46,8 +46,30 @@
               size="sm"
               icon="logout"
               class="q-mt-md"
-              @click="onLogout"
-            />
+            >
+              <q-menu transition-show="jump-down" transition-hide="jump-up">
+                <q-list style="min-width: 180px">
+                  <q-item clickable v-ripple @click="goToEditProfile">
+                    <q-item-section avatar>
+                      <q-icon name="edit" />
+                    </q-item-section>
+                    <q-item-section>Editar Usuario</q-item-section>
+                  </q-item>
+                  <q-item clickable v-ripple @click="goToChangePassword">
+                    <q-item-section avatar>
+                      <q-icon name="lock" />
+                    </q-item-section>
+                    <q-item-section>Cambiar Contraseña</q-item-section>
+                  </q-item>
+                  <q-item clickable v-ripple @click="onLogout">
+                    <q-item-section avatar>
+                      <q-icon name="logout" />
+                    </q-item-section>
+                    <q-item-section>Cerrar Sesión</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
           </div>
         </div>
       </q-img>
@@ -128,6 +150,14 @@ watch(
     }
   },
 )
+
+const goToEditProfile = () => {
+  router.push(`/editarusuario`)
+}
+
+const goToChangePassword = () => {
+  router.push('/editarcontrasena')
+}
 
 const onLogout = () => {
   authStore.logout()

@@ -51,7 +51,16 @@ const routes = [
       { path: 'tipos-documento', component: () => import('pages/sistema/TiposDocumentoPage.vue') },
       { path: 'personas', component: () => import('pages/sistema/PersonasPage.vue') },
       { path: 'persona/nuevo', component: () => import('src/pages/sistema/PersonaForm.vue') },
-      { path: 'persona/editar/:id', component: () => import('src/pages/sistema/PersonaForm.vue'), props: true },
+      {
+        path: 'persona/editar/:id',
+        component: () => import('src/pages/sistema/PersonaForm.vue'),
+        props: true,
+      },
+      {
+        path: 'editarcontrasena',
+        component: () => import('src/pages/EditarContraseña.vue'),
+      },
+      { path: 'editarusuario', component: () => import('src/pages/EditarUsuario.vue') },
     ],
     meta: { requiresAuth: true },
   },
