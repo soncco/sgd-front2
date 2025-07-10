@@ -6,6 +6,7 @@
       :columns="table.columns"
       :handleEdit="table.handleEdit"
       :multi-actions="table.multiActions"
+      :filters="table.filters"
     />
   </q-page>
 </template>
