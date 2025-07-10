@@ -74,12 +74,10 @@
               required
               type="password"
               v-model="info.password"
-              label="Contraseña"  
+              label="Contraseña"
               maxlength="150"
               :error-message="errores_texto.password"
               :error="errores.password"
-
-
             />
             <q-input
               v-if="!isEdit"
@@ -87,12 +85,10 @@
               required
               type="password"
               v-model="info.password_repeat"
-              label="Contraseña otra vez"  
+              label="Contraseña otra vez"
               maxlength="150"
               :error-message="errores_texto.password"
               :error="errores.password"
-
-              
             />
             <SimpleTitle title="Asignaciones de Cargos" />
             <div class="row q-gutter-x-xs q-mt-md">
@@ -102,7 +98,6 @@
                 class="col-12"
               >
                 <div class="relative-position q-pa-sm bg-grey-1 rounded-borders">
-                
                   <div class="row q-col-gutter-md">
                     <div class="col-6">
                       <APISelect
@@ -110,11 +105,6 @@
                         label="Cargo"
                         url="/api/base/cargos/"
                         field="nombre"
-                        :creatable="true"
-                        create-endpoint="/api/base/cargos/"
-                        :create-fields="[
-                          { field: 'nombre', label: 'Nombre del cargo', type: 'text' },
-                        ]"
                         dense
                       />
                     </div>
@@ -124,11 +114,6 @@
                         label="Oficina"
                         url="/api/base/oficinas/"
                         field="nombre"
-                        :creatable="true"
-                        create-endpoint="/api/base/oficinas/"
-                        :create-fields="[
-                          { field: 'nombre', label: 'Nombre de oficina', type: 'text' },
-                        ]"
                         dense
                       />
                     </div>
@@ -196,7 +181,6 @@ const info = reactive({
 function addAsignacion() {
   info.asignaciones_cargo.push({ cargo: null, oficina: null })
 }
-
 
 const errores = reactive({})
 const errores_texto = reactive({})

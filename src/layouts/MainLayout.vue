@@ -175,7 +175,6 @@ function isAdmin() {
 }
 
 function getMe() {
-  console.log('Usuario:', authStore.user)
   return authStore.user
 }
 
