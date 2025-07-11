@@ -12,6 +12,12 @@ const routes = [
         props: true,
       },
       */
+      // TRAMITES
+      {
+        path:'tramite/nuevo',
+        component: () => import('pages/tramite/NuevoDocumentoPage.vue'),
+      },
+
       {
         path: 'accion/nuevo',
         component: () => import('pages/sistema/AccionForm.vue'),
