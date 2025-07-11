@@ -1,5 +1,5 @@
 <template>
-    <ListPage :titulo="titulo" :table="table" />
+  <ListPage :titulo="titulo" :table="table" />
 </template>
 
 <script setup>
@@ -21,21 +21,37 @@ const titulo = {
 }
 const columns = [
   {
-    name: 'nombres',
-    label: 'Nombres',
+    name: 'nombre_completo',
+    label: 'Nombre Completo',
     align: 'left',
-    field: 'nombres',
+    field: 'nombre_completo',
     sortable: true,
   },
   {
-    name: 'apellidos',
-    label: 'Apellidos',
+    name: 'tipo_documento',
+    label: 'Tipo de Documento',
     align: 'left',
-    field: 'apellidos',
+    field: 'tipo_doc_display',
+    sortable: true,
+  },
+  {
+    name: 'documento',
+    label: 'Número de documento',
+    align: 'left',
+    field: 'documento',
     sortable: true,
   },
   { name: 'actions', label: 'Acciones', align: 'center' },
 ]
+
+const filters = [
+  {
+    label: 'Buscar',
+    type: 'text',
+    field: 'term',
+  },
+]
+
 const editPersona = (row) => {
   router.push(`/persona/editar/${row.id}`)
 }
@@ -43,5 +59,6 @@ const table = {
   endpoint: '/api/base/personas/',
   columns,
   handleEdit: editPersona,
+  filters,
 }
 </script>

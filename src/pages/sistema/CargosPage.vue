@@ -38,6 +38,14 @@ const columns = [
   { name: 'actions', label: 'Acciones', align: 'center' },
 ]
 
+const filters = [
+  {
+    label: 'Buscar',
+    type: 'text',
+    field: 'term',
+  },
+]
+
 const editCargo = (row) => {
   router.push(`/cargo/editar/${row.id}`)
 }
@@ -46,5 +54,6 @@ const table = {
   endpoint: '/api/base/cargos/',
   columns,
   handleEdit: editCargo,
+  filters,
 }
 </script>

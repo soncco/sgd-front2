@@ -1,43 +1,52 @@
-  <template>
+<template>
   <ListPage :titulo="titulo" :table="table" />
 </template>
 
 <script setup>
-import { useRouter } from "vue-router";
-import ListPage from "src/components/ListPage.vue";
+import { useRouter } from 'vue-router'
+import ListPage from 'src/components/ListPage.vue'
 
-const router = useRouter();
+const router = useRouter()
 
 const titulo = {
-  title: "Lista de acciones",
-  icon: "list",
+  title: 'Acciones',
+  icon: 'list',
   buttons: [
     {
-      label: "Crear nueva acción",
-      icon: "add",
-      route: "/accion/nuevo",
+      label: 'Crear nueva acción',
+      icon: 'add',
+      route: '/accion/nuevo',
     },
   ],
-};
+}
 
 const columns = [
   {
-    name: "nombre",
-    label: "Nombre",
-    align: "left",
-    field: "nombre",
+    name: 'nombre',
+    label: 'Nombre',
+    align: 'left',
+    field: 'nombre',
     sortable: true,
   },
-  { name: "actions", label: "Acciones", align: "center" },
-];
+  { name: 'actions', label: 'Acciones', align: 'center' },
+]
+
+const filters = [
+  {
+    label: 'Buscar',
+    type: 'text',
+    field: 'term',
+  },
+]
 
 const editAccion = (row) => {
-  router.push(`/accion/editar/${row.id}`);
-};
+  router.push(`/accion/editar/${row.id}`)
+}
 
 const table = {
-  endpoint: "/api/base/acciones/",
+  endpoint: '/api/base/acciones/',
   columns,
   handleEdit: editAccion,
-};
+  filters,
+}
 </script>
