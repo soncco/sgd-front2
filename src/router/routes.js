@@ -61,6 +61,7 @@ const routes = [
         component: () => import('src/pages/EditarContraseña.vue'),
       },
       { path: 'editarusuario', component: () => import('src/pages/EditarUsuario.vue') },
+      { path: 'bandeja/salida',component: () => import('src/pages/sistema/BandejaSalida.vue'), },
     ],
     meta: { requiresAuth: true },
   },
