@@ -10,6 +10,7 @@
     placeholder="DD/MM/YYYY"
     v-model="displayValue"
     @input="onInputChange"
+    :multiple="multiple"
   >
     <template #append>
       <q-icon name="event" class="cursor-pointer">
@@ -38,6 +39,7 @@ defineProps({
   label: { type: String, default: '' },
   error: { type: Boolean, default: false },
   errorMessage: { type: String, default: '' },
+  multiple: { type: Boolean, default: false },
 })
 
 // <q-date> maneja "YYYY/MM/DD",

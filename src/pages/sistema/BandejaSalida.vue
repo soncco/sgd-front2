@@ -7,7 +7,7 @@ import ListPage from 'src/components/ListPage.vue'
 
 const titulo = {
   title: 'Bandeja de Salida',
-  icon: 'send'
+  icon: 'send',
 }
 
 // Columnas de la tabla
@@ -31,28 +31,28 @@ const columns = [
     label: 'Fecha',
     align: 'left',
     field: 'fecha_documento',
-    format: val => new Date(val).toLocaleDateString(),
+    format: (val) => new Date(val).toLocaleDateString(),
     sortable: true,
   },
   {
     name: 'tipo_documento',
     label: 'Tipo de documento',
     align: 'left',
-    field: row => row.tipo_documento?.nombre || '—',
+    field: (row) => row.tipo_documento?.nombre || '—',
     sortable: true,
   },
   {
     name: 'oficina_destino',
     label: 'Oficina destino',
     align: 'left',
-    field: row => row.oficina_destino?.nombre || '—',
+    field: (row) => row.oficina_destino?.nombre || '—',
     sortable: true,
   },
   {
     name: 'destinatario',
     label: 'Destinatario',
     align: 'left',
-    field: row => row.destinatario?.nombre_completo || '—',
+    field: (row) => row.destinatario?.nombre_completo || '—',
     sortable: true,
   },
 ]
@@ -78,15 +78,18 @@ const filters = [
     endpoint: '/api/base/oficinas/',
     endpointName: 'nombre',
   },
+  {
+    label: 'Fecha',
+    type: 'date',
+    field: 'fecha',
+    multiple: true,
+  },
 ]
 
-
-  // se espera  endpoint del backend para obtener la data
-  const table = {
-    //endpoint: '/api/tramites/enviados/', // endpoint esperado
-    columns,
-    filters,
-  }
-
-
+// se espera  endpoint del backend para obtener la data
+const table = {
+  //endpoint: '/api/tramites/enviados/', // endpoint esperado
+  columns,
+  filters,
+}
 </script>
