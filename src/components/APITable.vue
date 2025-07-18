@@ -75,7 +75,14 @@
               outlined
               dense
               @update:model-value="onFilterChange"
-              :multiple="filter"
+            />
+            <RangeDatePicker
+              v-else-if="filter.type === 'date-range'"
+              v-model="tableFilters[filter.field]"
+              :label="filter.label"
+              outlined
+              dense
+              @update:model-value="onFilterChange"
             />
           </div>
         </div>
@@ -91,6 +98,7 @@ import { api } from 'boot/axios'
 
 import APISelect from './APISelect.vue'
 import DatePicker from './DatePicker.vue'
+import RangeDatePicker from './RangeDatePicker.vue'
 
 const props = defineProps({
   endpoint: {

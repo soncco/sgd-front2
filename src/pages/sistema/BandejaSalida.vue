@@ -80,9 +80,9 @@ const filters = [
   },
   {
     label: 'Fecha',
-    type: 'date',
+    type: 'date-range',
     field: 'fecha',
-    multiple: true,
+    range: true,
   },
 ]
 
