@@ -7,7 +7,7 @@ import ListPage from 'src/components/ListPage.vue'
 
 const titulo = {
   title: 'Bandeja de Salida',
-  icon: 'send',
+  icon: 'send'
 }
 
 // Columnas de la tabla
@@ -92,4 +92,5 @@ const table = {
   columns,
   filters,
 }
+
 </script>
