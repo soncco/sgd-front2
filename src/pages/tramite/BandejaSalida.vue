@@ -23,7 +23,7 @@ const columns = [
     name: 'numero_documento',
     label: 'Documento',
     align: 'left',
-    field: 'numero_documento',
+    field: 'numero',
     sortable: true,
   },
   {
@@ -86,11 +86,13 @@ const filters = [
   },
 ]
 
+
 // se espera  endpoint del backend para obtener la data
 const table = {
-  //endpoint: '/api/tramites/enviados/', // endpoint esperado
+  endpoint: '/api/tramite/bandeja-salida/', // endpoint esperado
   columns,
   filters,
 }
+
 
 </script>
