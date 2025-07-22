@@ -23,14 +23,14 @@ const columns = [
     name: 'numero_documento',
     label: 'Documento',
     align: 'left',
-    field: 'numero_documento',
+    field: 'numero',
     sortable: true,
   },
   {
     name: 'fecha_documento',
     label: 'Fecha',
     align: 'left',
-    field: 'fecha_documento',
+    field: 'fecha',
     format: val => new Date(val).toLocaleDateString(),
     sortable: true,
   },
@@ -38,21 +38,21 @@ const columns = [
     name: 'tipo_documento',
     label: 'Tipo de documento',
     align: 'left',
-    field: row => row.tipo_documento?.nombre || '—',
+    field: 'tipo_documento',
     sortable: true,
   },
   {
     name: 'oficina_destino',
     label: 'Oficina destino',
     align: 'left',
-    field: row => row.oficina_destino?.nombre || '—',
+    field: 'oficina_destino',
     sortable: true,
   },
   {
     name: 'destinatario',
     label: 'Destinatario',
     align: 'left',
-    field: row => row.destinatario?.nombre_completo || '—',
+    field: 'destinatario',
     sortable: true,
   },
 ]
@@ -83,7 +83,7 @@ const filters = [
 
   // se espera  endpoint del backend para obtener la data
   const table = {
-    //endpoint: '/api/tramites/enviados/', // endpoint esperado
+    endpoint: '/api/tramite/bandeja-salida/', // endpoint esperado
     columns,
     filters,
   }
