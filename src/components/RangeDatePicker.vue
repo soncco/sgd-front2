@@ -6,16 +6,20 @@
     :error-message="errorMessage"
     filled
     outlined
-    mask="##/##/####"
-    placeholder="DD/MM/YYYY"
+    mask="##/##/#### - ##/##/####"
+    placeholder="DD/MM/YYYY - DD/MM/YYYY"
     v-model="displayValue"
     @input="onInputChange"
-    :multiple="multiple"
   >
     <template #append>
       <q-icon name="event" class="cursor-pointer">
         <q-popup-proxy cover transition-show="scale" transition-hide="scale" ref="popupRef">
-          <q-date v-model="calendarValue" :locale="myLocale" @update:modelValue="onDateSelected">
+          <q-date
+            v-model="calendarValue"
+            :locale="myLocale"
+            @update:modelValue="onDateSelected"
+            :range="true"
+          >
             <div class="row items-center justify-end q-pa-sm">
               <q-btn v-close-popup label="Cerrar" color="primary" flat />
             </div>
@@ -31,15 +35,15 @@ import { ref, watch } from 'vue'
 
 // 1. defineModel para el valor real (YYYY-MM-DD)
 const model = defineModel({
-  type: String,
-  default: '',
+  type: Object,
+  default: () => ({ from: '', to: '' }),
 })
 
 defineProps({
   label: { type: String, default: '' },
   error: { type: Boolean, default: false },
   errorMessage: { type: String, default: '' },
-  multiple: { type: Boolean, default: false },
+  range: { type: Boolean, default: false },
 })
 
 // <q-date> maneja "YYYY/MM/DD",
@@ -71,16 +75,24 @@ const myLocale = {
 watch(
   () => model.value,
   (newVal) => {
-    // newVal = "YYYY-MM-DD"
-    if (!newVal) {
+    if (!newVal?.from || !newVal?.to) {
       displayValue.value = ''
       calendarValue.value = ''
       return
     }
-    // "2025-12-25" => ["2025","12","25"]
-    const [year, month, day] = newVal.split('-')
-    displayValue.value = `${day}/${month}/${year}` // 25/12/2025
-    calendarValue.value = `${year}/${month}/${day}` // 2025/12/25
+
+    const formatToDisplay = (iso) => {
+      const [y, m, d] = iso.split('-')
+      return `${d}/${m}/${y}`
+    }
+
+    displayValue.value = `${formatToDisplay(newVal.from)} - ${formatToDisplay(newVal.to)}`
+    calendarValue.value = {
+      from: newVal.from.replaceAll('-', '/'),
+      to: newVal.to.replaceAll('-', '/'),
+    }
+
+    console.log(displayValue.value)
   },
   { immediate: true },
 )
@@ -91,13 +103,22 @@ watch(
 //    Lo convertimos a "YYYY-MM-DD" => model => actualiza watchers => ...
 // --------------------------------------------------------------------
 function onDateSelected(newVal) {
-  // newVal = "YYYY/MM/DD"
-  if (!newVal) {
-    model.value = ''
+  // newVal = { from: 'YYYY/MM/DD', to: 'YYYY/MM/DD' }
+  if (!newVal?.from || !newVal?.to) {
+    model.value = { from: '', to: '' }
     return
   }
-  const [year, month, day] = newVal.split('/')
-  model.value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+
+  const formatToISO = (dateStr) => {
+    const [y, m, d] = dateStr.split('/')
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+  }
+
+  model.value = {
+    from: formatToISO(newVal.from),
+    to: formatToISO(newVal.to),
+  }
+
   popupRef.value.hide()
 }
 
@@ -106,16 +127,24 @@ function onDateSelected(newVal) {
 //    en el input "DD/MM/YYYY". Conviértelo a "YYYY-MM-DD" y guárdalo en model.
 // --------------------------------------------------------------------
 function onInputChange(val) {
-  // val = "25/12/2025"
-  if (!val.includes('/')) {
-    model.value = ''
+  if (!val.includes('-')) {
+    model.value = { from: '', to: '' }
     return
   }
-  const [dd, mm, yyyy] = val.split('/')
-  if (!dd || !mm || !yyyy) {
-    model.value = ''
-    return
+
+  const [fromStr, toStr] = val.split('-').map((str) => str.trim())
+  const parse = (str) => {
+    const [dd, mm, yyyy] = str.split('/')
+    return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
   }
-  model.value = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
+
+  if (fromStr && toStr) {
+    model.value = {
+      from: parse(fromStr),
+      to: parse(toStr),
+    }
+  } else {
+    model.value = { from: '', to: '' }
+  }
 }
 </script>

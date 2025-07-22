@@ -30,29 +30,29 @@ const columns = [
     name: 'fecha_documento',
     label: 'Fecha',
     align: 'left',
-    field: 'fecha',
-    format: val => new Date(val).toLocaleDateString(),
+    field: 'fecha_documento',
+    format: (val) => new Date(val).toLocaleDateString(),
     sortable: true,
   },
   {
     name: 'tipo_documento',
     label: 'Tipo de documento',
     align: 'left',
-    field: 'tipo_documento',
+    field: (row) => row.tipo_documento?.nombre || '—',
     sortable: true,
   },
   {
     name: 'oficina_destino',
     label: 'Oficina destino',
     align: 'left',
-    field: 'oficina_destino',
+    field: (row) => row.oficina_destino?.nombre || '—',
     sortable: true,
   },
   {
     name: 'destinatario',
     label: 'Destinatario',
     align: 'left',
-    field: 'destinatario',
+    field: (row) => row.destinatario?.nombre_completo || '—',
     sortable: true,
   },
 ]
@@ -78,15 +78,21 @@ const filters = [
     endpoint: '/api/base/oficinas/',
     endpointName: 'nombre',
   },
+  {
+    label: 'Fecha',
+    type: 'date-range',
+    field: 'fecha',
+    range: true,
+  },
 ]
 
 
-  // se espera  endpoint del backend para obtener la data
-  const table = {
-    endpoint: '/api/tramite/bandeja-salida/', // endpoint esperado
-    columns,
-    filters,
-  }
+// se espera  endpoint del backend para obtener la data
+const table = {
+  endpoint: '/api/tramite/bandeja-salida/', // endpoint esperado
+  columns,
+  filters,
+}
 
 
 </script>
