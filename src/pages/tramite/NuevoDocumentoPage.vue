@@ -50,7 +50,12 @@
                 :error="errores.oficina"
                 readonly
               />
-              <q-banner v-if="oficinaOptions.showNoOficinaMsg" class="q-mt-sm" color="negative" dense>
+              <q-banner
+                v-if="oficinaOptions.showNoOficinaMsg"
+                class="q-mt-sm"
+                color="negative"
+                dense
+              >
                 No tiene oficinas asignadas
               </q-banner>
             </template>
@@ -121,11 +126,15 @@
               <APISelect
                 v-model="info.destinatarios[index]"
                 label="Destinatario"
-                url="/api/base/personas/"
-                field="nombre_completo"
-                option-value="id"
+                :url="urlPersonasConOficina"
+                :field="
+                  (item) =>
+                    `${item.persona.nombre_completo}: ${item.cargo.nombre} de ${item.oficina.nombre}`
+                "
+                :option-value="(item) => item"
                 option-label="nombre_completo"
                 dense
+                :return-object="true"
                 :error-message="errores_texto[`destinatarios.${index}`]"
                 :error="errores[`destinatarios.${index}`]"
               />
@@ -139,14 +148,20 @@
             />
           </div>
         </div>
-        <q-btn label="Guardar" type="submit" color="primary" icon="save" class="full-width q-mt-md" />
+        <q-btn
+          label="Guardar"
+          type="submit"
+          color="primary"
+          icon="save"
+          class="full-width q-mt-md"
+        />
       </q-form>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { reactive, onMounted, watch } from 'vue'
+import { computed, reactive, onMounted, watch } from 'vue'
 import { Notify } from 'quasar'
 import { useRouter } from 'vue-router'
 import { api } from 'src/boot/axios'
@@ -177,12 +192,16 @@ const info = reactive({
 const errores = reactive({})
 const errores_texto = reactive({})
 
-const endpoint = '/api/documentos/'
+const endpoint = '/api/tramite/expedientes/completo/'
+
+const urlPersonasConOficina = computed(() => {
+  if (!info.oficina) return '/api/base/personas-con-oficina/' // sin filtro si no hay oficina
+  return `/api/base/personas-con-oficina/?oficina=${info.oficina.label}`
+})
 
 const today = new Date().toISOString().slice(0, 10)
 info.fecha_expediente = today
 info.fecha_documento = today
-
 
 const oficinaOptions = reactive({
   readonly: true,
@@ -199,10 +218,11 @@ async function fetchPersonaActual() {
 
     info.remitente = persona.nombres + ' ' + persona.apellidos
 
-    const oficinas = persona.asignaciones_cargo?.map(a => ({
-      label: a.oficina_nombre,
-      value: a.oficina,
-    })) || []
+    const oficinas =
+      persona.asignaciones_cargo?.map((a) => ({
+        label: a.oficina_nombre,
+        value: a.oficina,
+      })) || []
 
     if (oficinas.length === 1) {
       info.oficina = oficinas[0].label
@@ -217,17 +237,14 @@ async function fetchPersonaActual() {
       oficinaOptions.readonly = false
       oficinaOptions.showNoOficinaMsg = false
     }
-  }  catch (error) {
-  console.error('Error al obtener persona actual:', error)
-  Notify.create({
-    type: 'negative',
-    message: 'No se pudo obtener los datos de la persona actual',
-  })
+  } catch (error) {
+    console.error('Error al obtener persona actual:', error)
+    Notify.create({
+      type: 'negative',
+      message: 'No se pudo obtener los datos de la persona actual',
+    })
+  }
 }
-
-}
-
-
 
 function addDestinatario() {
   info.destinatarios.push(null)
@@ -254,7 +271,7 @@ async function fetchNumeroDocumento(tipo_id) {
 
   try {
     const res = await api.get('/api/tramite/documentos/next-number/', {
-      params: { tipo_id }
+      params: { tipo_id },
     })
     info.numero = res.data.next_number
   } catch (error) {
@@ -271,16 +288,46 @@ onMounted(() => {
   fetchPersonaActual()
 })
 
-watch(() => info.tipo_documento, (newTipo) => {
-  fetchNumeroDocumento(newTipo?.id || newTipo)
-})
+watch(
+  () => info.tipo_documento,
+  (newTipo) => {
+    fetchNumeroDocumento(newTipo?.id || newTipo)
+  },
+)
 
 const submitForm = async () => {
   Object.keys(errores).forEach((k) => (errores[k] = false))
   Object.keys(errores_texto).forEach((k) => (errores_texto[k] = ''))
 
   try {
-    const payload = { ...info }
+    const personaRes = await api.get('/api/base/me/')
+    const persona = personaRes.data.persona.id
+
+    const asignacion = await api.get(`/api/base/personas/${persona}/`)
+    const asignacionId = asignacion.data.asignaciones_cargo?.[0]?.id
+
+    console.log('destinatarios:', info.destinatarios)
+
+    const payload = {
+      numero: parseInt(info.expediente),
+      documento: {
+        tipo:
+          typeof info.tipo_documento === 'object' ? info.tipo_documento.id : info.tipo_documento,
+        remitente: persona,
+        numero: parseInt(info.numero),
+        asignacion_cargo: asignacionId,
+        asunto: info.asunto,
+        destinos_documento: info.destinatarios
+          .filter((d) => d !== null)
+          .map((dest) => ({
+            destinatario: dest.persona.id, // Asumiendo que 'dest' es un objeto con 'persona'
+            oficina_destino: info.oficina.value, // Ajusta según cómo venga el dato
+          })),
+      },
+    }
+    console.log('Payload:', payload)
+
+    // const payload = { ...info }
     await api.post(endpoint, payload)
 
     Notify.create({
@@ -288,7 +335,7 @@ const submitForm = async () => {
       message: 'Documento creado con éxito',
     })
 
-    router.push('/documentos')
+    router.push('/bandeja/salida')
   } catch (error) {
     if (error.response?.status === 400) {
       const data = error.response.data

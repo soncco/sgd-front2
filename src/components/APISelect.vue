@@ -18,6 +18,7 @@
       :dense="dense"
       emit-value
       map-options
+      :return-object="returnObject"
     >
       <!-- Slot personalizado para cuando no hay opciones -->
       <template v-slot:no-option>
@@ -114,6 +115,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  returnObject: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 /**
@@ -139,19 +144,25 @@ const createFormData = reactive({})
  */
 function buildOption(item) {
   const label = typeof props.field === 'function' ? props.field(item) : item[props.field]
-  return {
-    label,
-    value: item.id,
-    original: item,
-  }
+  return props.returnObject
+    ? {
+        label,
+        value: item, // el objeto entero se convierte en el valor
+      }
+    : {
+        label,
+        value: item.id,
+        original: item, // sigue disponible si lo necesitas para otra lógica
+      }
 }
 
 /**
  * fetchData: carga datos de la API con un término de búsqueda
  */
-function fetchData(term = '') {
+function fetchData(/*term = ''*/) {
   isLoading.value = true
-  const urlWithParam = `${props.url}?term=${encodeURIComponent(term)}`
+  // const urlWithParam = `${props.url}?term=${encodeURIComponent(term)}`
+  const urlWithParam = `${props.url}`
   api
     .get(urlWithParam)
     .then((response) => {
@@ -175,8 +186,8 @@ function fetchDefaultData() {
       options.value = [...options.value, ...defaultOptions]
 
       model.value = props.multiple
-        ? defaultOptions.map((opt) => opt.value)
-        : defaultOptions[0]?.value || null
+        ? defaultOptions.map((opt) => (props.returnObject ? opt.original : opt.value))
+        : (props.returnObject ? defaultOptions[0]?.original : defaultOptions[0]?.value) || null
     })
     .finally(() => {
       isLoading.value = false
@@ -255,10 +266,10 @@ async function handleCreate() {
       if (!Array.isArray(model.value)) {
         model.value = []
       }
-      model.value.push(newOption)
+      model.value.push(props.returnObject ? newOption.original : newOption.value)
     } else {
       // si es single
-      model.value = newOption
+      model.value = props.returnObject ? newOption.original : newOption.value
     }
     // 3. Cerrar el diálogo
     showCreateDialog.value = false
