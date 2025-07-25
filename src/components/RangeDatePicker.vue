@@ -1,59 +1,72 @@
 <template>
-  <q-input
-    ref="inputRef"
-    :label="label"
-    :error="error"
-    :error-message="errorMessage"
-    filled
-    outlined
-    mask="##/##/#### - ##/##/####"
-    placeholder="DD/MM/YYYY - DD/MM/YYYY"
-    v-model="displayValue"
-    @input="onInputChange"
-  >
-    <template #append>
-      <q-icon name="event" class="cursor-pointer">
-        <q-popup-proxy cover transition-show="scale" transition-hide="scale" ref="popupRef">
-          <q-date
-            v-model="calendarValue"
-            :locale="myLocale"
-            @update:modelValue="onDateSelected"
-            :range="true"
-          >
-            <div class="row items-center justify-end q-pa-sm">
-              <q-btn v-close-popup label="Cerrar" color="primary" flat />
-            </div>
-          </q-date>
-        </q-popup-proxy>
-      </q-icon>
-    </template>
-  </q-input>
+  <div class="row q-col-gutter-sm">
+    <div class="col-6">
+      <q-input
+        v-model="fromDisplay"
+        :label="fromLabel"
+        outlined
+        dense
+        mask="##/##/####"
+        placeholder="DD/MM/YYYY"
+        @input="onFromChange"
+      >
+        <template #append>
+          <q-icon name="event" class="cursor-pointer">
+            <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+              <q-date v-model="fromCalendar" :locale="myLocale" @update:modelValue="onFromSelected">
+                <div class="row items-center justify-end q-pa-sm">
+                  <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                </div>
+              </q-date>
+            </q-popup-proxy>
+          </q-icon>
+        </template>
+      </q-input>
+    </div>
+    <div class="col-6">
+      <q-input
+        v-model="toDisplay"
+        :label="toLabel"
+        outlined
+        dense
+        mask="##/##/####"
+        placeholder="DD/MM/YYYY"
+        @input="onToChange"
+      >
+        <template #append>
+          <q-icon name="event" class="cursor-pointer">
+            <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+              <q-date v-model="toCalendar" :locale="myLocale" @update:modelValue="onToSelected">
+                <div class="row items-center justify-end q-pa-sm">
+                  <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                </div>
+              </q-date>
+            </q-popup-proxy>
+          </q-icon>
+        </template>
+      </q-input>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
 
-// 1. defineModel para el valor real (YYYY-MM-DD)
 const model = defineModel({
   type: Object,
-  default: () => ({ from: '', to: '' }),
+  default: () => ({ from: null, to: null }),
 })
 
 defineProps({
-  label: { type: String, default: '' },
-  error: { type: Boolean, default: false },
-  errorMessage: { type: String, default: '' },
-  range: { type: Boolean, default: false },
+  label: { type: String, default: 'Rango de fechas' },
+  fromLabel: { type: String, default: 'Desde' },
+  toLabel: { type: String, default: 'Hasta' },
 })
 
-// <q-date> maneja "YYYY/MM/DD",
-// displayValue muestra "DD/MM/YYYY",
-// model => "YYYY-MM-DD"
-
-const displayValue = ref('')
-const calendarValue = ref('')
-const inputRef = ref(null)
-const popupRef = ref(null)
+const fromDisplay = ref('')
+const toDisplay = ref('')
+const fromCalendar = ref('')
+const toCalendar = ref('')
 
 const myLocale = {
   days: 'Domingo_Lunes_Martes_Miércoles_Jueves_Viernes_Sábado'.split('_'),
@@ -68,83 +81,56 @@ const myLocale = {
   pluralDay: 'días',
 }
 
-// --------------------------------------------------------------------
-// 2. Al cambiar model (YYYY-MM-DD), actualizamos displayValue (DD/MM/YYYY)
-//    y calendarValue (YYYY/MM/DD).
-// --------------------------------------------------------------------
+// Funciones helper
+const formatToDisplay = (iso) => {
+  if (!iso) return ''
+  const [y, m, d] = iso.split('-')
+  return `${d}/${m}/${y}`
+}
+
+const formatToISO = (dateStr) => {
+  const [y, m, d] = dateStr.split('/')
+  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+}
+
+const parseDisplayDate = (str) => {
+  if (!str || str.length < 10) return null
+  const [dd, mm, yyyy] = str.split('/')
+  if (!dd || !mm || !yyyy || yyyy.length !== 4) return null
+  return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
+}
+
+// Watch para sincronizar modelo con displays
 watch(
   () => model.value,
   (newVal) => {
-    if (!newVal?.from || !newVal?.to) {
-      displayValue.value = ''
-      calendarValue.value = ''
-      return
-    }
-
-    const formatToDisplay = (iso) => {
-      const [y, m, d] = iso.split('-')
-      return `${d}/${m}/${y}`
-    }
-
-    displayValue.value = `${formatToDisplay(newVal.from)} - ${formatToDisplay(newVal.to)}`
-    calendarValue.value = {
-      from: newVal.from.replaceAll('-', '/'),
-      to: newVal.to.replaceAll('-', '/'),
-    }
-
-    console.log(displayValue.value)
+    fromDisplay.value = newVal?.from ? formatToDisplay(newVal.from) : ''
+    toDisplay.value = newVal?.to ? formatToDisplay(newVal.to) : ''
+    fromCalendar.value = newVal?.from ? newVal.from.replaceAll('-', '/') : ''
+    toCalendar.value = newVal?.to ? newVal.to.replaceAll('-', '/') : ''
   },
-  { immediate: true },
+  { immediate: true, deep: true },
 )
 
-// --------------------------------------------------------------------
-// 3. Cuando el usuario selecciona fecha en <q-date>,
-//    se dispara onDateSelected(newVal), que viene en formato "YYYY/MM/DD".
-//    Lo convertimos a "YYYY-MM-DD" => model => actualiza watchers => ...
-// --------------------------------------------------------------------
-function onDateSelected(newVal) {
-  // newVal = { from: 'YYYY/MM/DD', to: 'YYYY/MM/DD' }
-  if (!newVal?.from || !newVal?.to) {
-    model.value = { from: '', to: '' }
-    return
-  }
-
-  const formatToISO = (dateStr) => {
-    const [y, m, d] = dateStr.split('/')
-    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
-  }
-
-  model.value = {
-    from: formatToISO(newVal.from),
-    to: formatToISO(newVal.to),
-  }
-
-  popupRef.value.hide()
+// Funciones para manejar cambios desde el calendario
+function onFromSelected(val) {
+  const isoDate = val ? formatToISO(val) : null
+  model.value = { ...model.value, from: isoDate }
 }
 
-// --------------------------------------------------------------------
-// 4. onInputChange se llama cuando el usuario escribe manualmente
-//    en el input "DD/MM/YYYY". Conviértelo a "YYYY-MM-DD" y guárdalo en model.
-// --------------------------------------------------------------------
-function onInputChange(val) {
-  if (!val.includes('-')) {
-    model.value = { from: '', to: '' }
-    return
-  }
+function onToSelected(val) {
+  const isoDate = val ? formatToISO(val) : null
+  model.value = { ...model.value, to: isoDate }
+}
 
-  const [fromStr, toStr] = val.split('-').map((str) => str.trim())
-  const parse = (str) => {
-    const [dd, mm, yyyy] = str.split('/')
-    return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
-  }
+// Funciones para manejar cambios desde el input manual
+function onFromChange(val) {
+  const isoDate = parseDisplayDate(val)
+  model.value = { ...model.value, from: isoDate }
+}
 
-  if (fromStr && toStr) {
-    model.value = {
-      from: parse(fromStr),
-      to: parse(toStr),
-    }
-  } else {
-    model.value = { from: '', to: '' }
-  }
+function onToChange(val) {
+  const isoDate = parseDisplayDate(val)
+  model.value = { ...model.value, to: isoDate }
 }
 </script>

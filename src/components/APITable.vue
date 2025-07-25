@@ -82,6 +82,8 @@
               :label="filter.label"
               outlined
               dense
+              :from-label="filter.fromLabel || 'Desde'"
+              :to-label="filter.toLabel || 'Hasta'"
               @update:model-value="onFilterChange"
             />
           </div>
@@ -143,9 +145,9 @@ const pagination = ref({
 // Inicializar tableFilters basándose en la configuración de filters
 const tableFilters = ref(
   props.filters.reduce((acc, filter) => {
-    if (filter.type === 'date-range' && Array.isArray(filter.field)) {
-      acc[filter.field[0]] = ''
-      acc[filter.field[1]] = ''
+    if (filter.type === 'date-range') {
+      // Para date-range, inicializar como objeto con from/to
+      acc[filter.field] = { from: null, to: null }
     } else {
       acc[filter.field] = ''
     }
@@ -158,16 +160,23 @@ const buildFilterParams = () => {
   const filterParams = {}
 
   props.filters.forEach((filter) => {
-    if (filter.type === 'date-range' && Array.isArray(filter.field)) {
-      const [afterField, beforeField] = filter.field
-      const afterValue = tableFilters.value[afterField]
-      const beforeValue = tableFilters.value[beforeField]
+    if (filter.type === 'date-range') {
+      const dateValue = tableFilters.value[filter.field]
 
-      if (afterValue) {
-        filterParams[afterField] = afterValue
-      }
-      if (beforeValue) {
-        filterParams[beforeField] = beforeValue
+      if (dateValue && (dateValue.from || dateValue.to)) {
+        const { from, to } = dateValue
+
+        // Lógica condicional para los filtros de fecha
+        if (from && to) {
+          // Ambas fechas: usar __range
+          filterParams[`${filter.field}__range`] = `${from},${to}`
+        } else if (from && !to) {
+          // Solo fecha inicial: usar __gte (greater than or equal)
+          filterParams[`${filter.field}__gte`] = from
+        } else if (!from && to) {
+          // Solo fecha final: usar __lte (less than or equal)
+          filterParams[`${filter.field}__lte`] = to
+        }
       }
     } else if (filter.type === 'text') {
       const value = tableFilters.value[filter.field]
