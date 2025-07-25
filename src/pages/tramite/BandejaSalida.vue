@@ -27,10 +27,10 @@ const columns = [
     sortable: true,
   },
   {
-    name: 'fecha_documento',
+    name: 'fecha',
     label: 'Fecha',
     align: 'left',
-    field: 'fecha_documento',
+    field: 'fecha',
     format: (val) => new Date(val).toLocaleDateString(),
     sortable: true,
   },
