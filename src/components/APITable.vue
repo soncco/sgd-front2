@@ -143,24 +143,41 @@ const pagination = ref({
 // Inicializar tableFilters basándose en la configuración de filters
 const tableFilters = ref(
   props.filters.reduce((acc, filter) => {
-    acc[filter.field] = ''
+    if (filter.type === 'date-range' && Array.isArray(filter.field)) {
+      acc[filter.field[0]] = ''
+      acc[filter.field[1]] = ''
+    } else {
+      acc[filter.field] = ''
+    }
     return acc
   }, {}),
 )
 
-// Función para construir los parámetros de filtro
+// Construir parámetros de filtro para enviar al backend
 const buildFilterParams = () => {
   const filterParams = {}
 
   props.filters.forEach((filter) => {
-    const filterValue = tableFilters.value[filter.field]
+    if (filter.type === 'date-range' && Array.isArray(filter.field)) {
+      const [afterField, beforeField] = filter.field
+      const afterValue = tableFilters.value[afterField]
+      const beforeValue = tableFilters.value[beforeField]
 
-    if (filterValue) {
-      if (filter.type === 'text' && filterValue.trim()) {
-        filterParams[`term`] = filterValue.trim()
-      } else {
-        // Para otros tipos de filtros, usar el nombre del filtro directamente
-        filterParams[filter.field] = filterValue
+      if (afterValue) {
+        filterParams[afterField] = afterValue
+      }
+      if (beforeValue) {
+        filterParams[beforeField] = beforeValue
+      }
+    } else if (filter.type === 'text') {
+      const value = tableFilters.value[filter.field]
+      if (value && value.trim()) {
+        filterParams['term'] = value.trim()
+      }
+    } else {
+      const value = tableFilters.value[filter.field]
+      if (value) {
+        filterParams[filter.field] = value
       }
     }
   })

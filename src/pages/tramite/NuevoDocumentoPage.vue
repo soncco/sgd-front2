@@ -123,22 +123,37 @@
             />
             <SimpleTitle title="Destinatarios" />
             <div v-for="(dest, index) in info.destinatarios" :key="index" class="q-mb-md">
-              <APISelect
-                v-model="info.destinatarios[index]"
-                label="Destinatario"
-                :url="urlPersonasConOficina"
-                :field="
-                  (item) =>
-                    `${item.persona.nombre_completo}: ${item.cargo.nombre} de ${item.oficina.nombre}`
-                "
-                :option-value="(item) => item"
-                option-label="nombre_completo"
-                dense
-                :return-object="true"
-                :error-message="errores_texto[`destinatarios.${index}`]"
-                :error="errores[`destinatarios.${index}`]"
-              />
+              <div class="row items-center">
+                <div class="col">
+                  <APISelect
+                    v-model="info.destinatarios[index]"
+                    label="Destinatario"
+                    :url="urlPersonasConOficina"
+                    :field="
+                      (item) =>
+                        `${item.persona.nombre_completo}: ${item.cargo.nombre} de ${item.oficina.nombre}`
+                    "
+                    :option-value="(item) => item"
+                    option-label="nombre_completo"
+                    dense
+                    :return-object="true"
+                    :error-message="errores_texto[`destinatarios.${index}`]"
+                    :error="errores[`destinatarios.${index}`]"
+                  />
+                </div>
+                <div class="col-auto">
+                  <q-btn
+                    dense
+                    flat
+                    round
+                    icon="delete"
+                    color="negative"
+                    @click="removeDestinatario(index)"
+                  />
+                </div>
+              </div>
             </div>
+
             <q-btn
               flat
               color="primary"
@@ -249,6 +264,16 @@ async function fetchPersonaActual() {
 function addDestinatario() {
   info.destinatarios.push(null)
 }
+function removeDestinatario(index) {
+  if (info.destinatarios.length > 1) {
+    info.destinatarios.splice(index, 1)
+  } else {
+    Notify.create({
+      type: 'warning',
+      message: 'Debe haber al menos un destinatario',
+    })
+  }
+}
 
 async function fetchNumeroExpediente() {
   try {
@@ -300,6 +325,8 @@ const submitForm = async () => {
   Object.keys(errores_texto).forEach((k) => (errores_texto[k] = ''))
 
   try {
+    await fetchNumeroDocumento(info.tipo_documento?.id || info.tipo_documento)
+
     const personaRes = await api.get('/api/base/me/')
     const persona = personaRes.data.persona.id
 
@@ -338,6 +365,7 @@ const submitForm = async () => {
     router.push('/bandeja/salida')
   } catch (error) {
     if (error.response?.status === 400) {
+      console.error('❌ Error 400 - Detalles del backend:', error.response.data)
       const data = error.response.data
       Object.entries(data).forEach(([field, msg]) => {
         errores[field] = true

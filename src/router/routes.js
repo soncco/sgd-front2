@@ -14,7 +14,7 @@ const routes = [
       */
       // TRAMITES
       {
-        path:'tramite/nuevo',
+        path: 'tramite/nuevo',
         component: () => import('pages/tramite/NuevoDocumentoPage.vue'),
       },
 
@@ -67,7 +67,8 @@ const routes = [
         component: () => import('src/pages/EditarContraseña.vue'),
       },
       { path: 'editarusuario', component: () => import('src/pages/EditarUsuario.vue') },
-      { path: 'bandeja/salida',component: () => import('src/pages/tramite/BandejaSalida.vue'), },
+      { path: 'bandeja/entrada', component: () => import('src/pages/tramite/BandejaEntrada.vue') },
+      { path: 'bandeja/salida', component: () => import('src/pages/tramite/BandejaSalida.vue') },
     ],
     meta: { requiresAuth: true },
   },
