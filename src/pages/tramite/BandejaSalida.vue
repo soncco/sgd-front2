@@ -7,7 +7,7 @@ import ListPage from 'src/components/ListPage.vue'
 
 const titulo = {
   title: 'Bandeja de Salida',
-  icon: 'send'
+  icon: 'send',
 }
 
 // Columnas de la tabla
@@ -38,21 +38,21 @@ const columns = [
     name: 'tipo_documento',
     label: 'Tipo de documento',
     align: 'left',
-    field: (row) => row.tipo_documento?.nombre || '—',
+    field: (row) => row.tipo_documento,
     sortable: true,
   },
   {
     name: 'oficina_destino',
     label: 'Oficina destino',
     align: 'left',
-    field: (row) => row.oficina_destino?.nombre || '—',
+    field: (row) => row.oficina_destino,
     sortable: true,
   },
   {
     name: 'destinatario',
     label: 'Destinatario',
     align: 'left',
-    field: (row) => row.destinatario?.nombre_completo || '—',
+    field: (row) => row.destinatario,
     sortable: true,
   },
 ]
@@ -82,10 +82,8 @@ const filters = [
     label: 'Fecha',
     type: 'date-range',
     field: 'fecha',
-    range: true,
   },
 ]
-
 
 // se espera  endpoint del backend para obtener la data
 const table = {
@@ -93,6 +91,4 @@ const table = {
   columns,
   filters,
 }
-
-
 </script>
