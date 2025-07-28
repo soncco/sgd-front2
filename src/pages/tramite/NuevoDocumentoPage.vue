@@ -176,7 +176,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, onMounted, watch } from 'vue'
+import { reactive, onMounted, watch } from 'vue'
 import { Notify } from 'quasar'
 import { useRouter } from 'vue-router'
 import { api } from 'src/boot/axios'
@@ -209,10 +209,14 @@ const errores_texto = reactive({})
 
 const endpoint = '/api/tramite/expedientes/completo/'
 
+const urlPersonasConOficina = '/api/base/personas-con-oficina/'
+
+/*
 const urlPersonasConOficina = computed(() => {
   if (!info.oficina) return '/api/base/personas-con-oficina/' // sin filtro si no hay oficina
   return `/api/base/personas-con-oficina/?oficina=${info.oficina.label}`
 })
+  */
 
 const today = new Date().toISOString().slice(0, 10)
 info.fecha_expediente = today
