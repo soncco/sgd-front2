@@ -3,7 +3,11 @@
 </template>
 
 <script setup>
+import { ref, onMounted, computed } from 'vue'
+import { api } from 'boot/axios'
 import ListPage from 'src/components/ListPage.vue'
+
+const multiActions = ref([])
 
 const titulo = {
   title: 'Bandeja de Entrada',
@@ -54,6 +58,7 @@ const columns = [
     field: 'remitente',
     sortable: true,
   },
+  { name: 'multiactions', label: 'Acciones', align: 'center' },
 ]
 
 const filters = [
@@ -84,9 +89,37 @@ const filters = [
   },
 ]
 
-const table = {
+const fetchMultiActions = async () => {
+  try {
+    const response = await api.get('/api/base/acciones/')
+    const actions = [
+      {
+        label: 'Ver',
+        icon: 'visibility',
+        action: (row) => console.log('Ver acción ejecutada', row.id),
+      },
+    ]
+    const serverActions = response.data.results.map((action) => ({
+      label: action.nombre,
+      action: (row) => {
+        console.log(`Acción ejecutada: ${action.nombre}`, row.id)
+      },
+      icon: action.icono,
+    }))
+    multiActions.value = [...actions, ...serverActions]
+  } catch (error) {
+    console.error('Error fetching multi actions:', error)
+  }
+}
+
+onMounted(() => {
+  fetchMultiActions()
+})
+
+const table = computed(() => ({
   endpoint: '/api/tramite/bandeja-entrada/',
   columns,
   filters,
-}
+  multiActions: multiActions.value,
+}))
 </script>
