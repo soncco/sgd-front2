@@ -67,16 +67,23 @@ const filters = [
   {
     label: 'Tipo de documento',
     type: 'api-select',
-    field: 'tipo_documento',
+    field: 'tipo',
     endpoint: '/api/base/tipos-documento/',
     endpointName: 'nombre',
   },
   {
     label: 'Oficina destino',
     type: 'api-select',
-    field: 'oficina_destino',
+    field: 'destinos__oficina_destino',
     endpoint: '/api/base/oficinas/',
     endpointName: 'nombre',
+  },
+  {
+    label: 'Destinatario',
+    type: 'api-select',
+    field: 'destinos__destinatario',
+    endpoint: '/api/base/personas/',
+    endpointName: 'nombre_completo',
   },
   {
     label: 'Fecha',
