@@ -34,7 +34,7 @@
                 clickable
                 @click="action.action(props.row)"
               >
-                <q-item-section avatar>
+                <q-item-section avatar v-if="action.icon">
                   <q-avatar
                     :icon="action.icon"
                     :color="action.color"
