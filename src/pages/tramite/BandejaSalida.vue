@@ -3,6 +3,7 @@
 </template>
 
 <script setup>
+import { ref, computed } from 'vue'
 import ListPage from 'src/components/ListPage.vue'
 
 const titulo = {
@@ -10,7 +11,19 @@ const titulo = {
   icon: 'send',
 }
 
-// Columnas de la tabla
+// Acciones múltiples por fila (solo Ver en este caso)
+const multiActions = ref([
+  {
+    label: 'Ver',
+    icon: 'visibility',
+    action: (row) => {
+      console.log('Ver acción ejecutada', row.id)
+      // can use router.push
+    },
+  },
+])
+
+// Columnas de la tabla (se eliminaron oficina_destino y destinatario)
 const columns = [
   {
     name: 'expediente',
@@ -42,22 +55,13 @@ const columns = [
     sortable: true,
   },
   {
-    name: 'oficina_destino',
-    label: 'Oficina destino',
-    align: 'left',
-    field: (row) => row.oficina_destino,
-    sortable: true,
-  },
-  {
-    name: 'destinatario',
-    label: 'Destinatario',
-    align: 'left',
-    field: (row) => row.destinatario,
-    sortable: true,
+    name: 'multiactions',
+    label: 'Acciones',
+    align: 'center',
   },
 ]
 
-// Filtros para buscar
+// Filtros (no cambiamos, aunque podrías también quitar los de oficina y destinatario si ya no son útiles)
 const filters = [
   {
     label: 'Buscar',
@@ -72,30 +76,17 @@ const filters = [
     endpointName: 'nombre',
   },
   {
-    label: 'Oficina destino',
-    type: 'api-select',
-    field: 'destinos__oficina_destino',
-    endpoint: '/api/base/oficinas/',
-    endpointName: 'nombre',
-  },
-  {
-    label: 'Destinatario',
-    type: 'api-select',
-    field: 'destinos__destinatario',
-    endpoint: '/api/base/personas/',
-    endpointName: 'nombre_completo',
-  },
-  {
     label: 'Fecha',
     type: 'date-range',
     field: 'fecha',
   },
 ]
 
-// se espera  endpoint del backend para obtener la data
-const table = {
-  endpoint: '/api/tramite/bandeja-salida/', // endpoint esperado
+// Tabla computada con las columnas, filtros y acciones
+const table = computed(() => ({
+  endpoint: '/api/tramite/bandeja-salida/',
   columns,
   filters,
-}
+  multiActions: multiActions.value,
+}))
 </script>
