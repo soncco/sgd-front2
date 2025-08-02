@@ -38,7 +38,7 @@
               readonly
             />
 
-            <!-- Oficina: readonly, vacío con mensaje, o APISelect -->
+            <!-- Oficina -->
             <template v-if="oficinaOptions.readonly">
               <q-input
                 outlined
@@ -153,7 +153,6 @@
                 </div>
               </div>
             </div>
-
             <q-btn
               flat
               color="primary"
@@ -161,8 +160,21 @@
               label="Añadir destinatario"
               @click="addDestinatario"
             />
+
+            <!--  Archivos -->
+            <SimpleTitle title="Archivos" />
+            <q-file
+              outlined
+              dense
+              multiple
+              v-model="info.archivos"
+              label="Selecciona archivos"
+              use-chips
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+            />
           </div>
         </div>
+
         <q-btn
           label="Guardar"
           type="submit"
@@ -185,7 +197,6 @@ import APISelect from 'src/components/APISelect.vue'
 import SimpleTitle from 'src/components/SimpleTitle.vue'
 
 const router = useRouter()
-
 const titulo = reactive({
   title: 'Nuevo Documento',
   icon: 'description',
@@ -202,21 +213,14 @@ const info = reactive({
   fecha_documento: '',
   asunto: '',
   destinatarios: [null],
+  archivos: [], // <-- Nuevo campo
 })
 
 const errores = reactive({})
 const errores_texto = reactive({})
 
 const endpoint = '/api/tramite/expedientes/completo/'
-
 const urlPersonasConOficina = '/api/base/personas-con-oficina/'
-
-/*
-const urlPersonasConOficina = computed(() => {
-  if (!info.oficina) return '/api/base/personas-con-oficina/' // sin filtro si no hay oficina
-  return `/api/base/personas-con-oficina/?oficina=${info.oficina.label}`
-})
-  */
 
 const today = new Date().toISOString().slice(0, 10)
 info.fecha_expediente = today
@@ -297,7 +301,6 @@ async function fetchNumeroDocumento(tipo_id) {
     info.numero = ''
     return
   }
-
   try {
     const res = await api.get('/api/tramite/documentos/next-number/', {
       params: { tipo_id },
@@ -337,8 +340,6 @@ const submitForm = async () => {
     const asignacion = await api.get(`/api/base/personas/${persona}/`)
     const asignacionId = asignacion.data.asignaciones_cargo?.[0]?.id
 
-    console.log('destinatarios:', info.destinatarios)
-
     const payload = {
       numero: parseInt(info.expediente),
       documento: {
@@ -351,15 +352,26 @@ const submitForm = async () => {
         destinos_documento: info.destinatarios
           .filter((d) => d !== null)
           .map((dest) => ({
-            destinatario: dest.persona.id, // Asumiendo que 'dest' es un objeto con 'persona'
-            oficina_destino: info.oficina.value, // Ajusta según cómo venga el dato
+            destinatario: dest.persona.id,
+            oficina_destino: info.oficina.value,
           })),
       },
     }
-    console.log('Payload:', payload)
 
-    // const payload = { ...info }
-    await api.post(endpoint, payload)
+    //  Enviar payload + archivos en un solo FormData
+    const formData = new FormData()
+    formData.append('numero', payload.numero)
+    formData.append('documento', JSON.stringify(payload.documento))
+
+    info.archivos.forEach((file) => {
+      formData.append('archivos', file)
+    })
+
+    await api.post(endpoint, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
 
     Notify.create({
       type: 'positive',
@@ -369,7 +381,6 @@ const submitForm = async () => {
     router.push('/bandeja/salida')
   } catch (error) {
     if (error.response?.status === 400) {
-      console.error('❌ Error 400 - Detalles del backend:', error.response.data)
       const data = error.response.data
       Object.entries(data).forEach(([field, msg]) => {
         errores[field] = true
