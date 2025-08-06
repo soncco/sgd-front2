@@ -7,6 +7,7 @@
       :handleEdit="table.handleEdit"
       :multi-actions="table.multiActions"
       :filters="table.filters"
+      :get-dynamic-actions="table.getDynamicActions"
     />
   </q-page>
 </template>
