@@ -6,6 +6,9 @@
 import { ref, onMounted, computed } from 'vue'
 import { api } from 'boot/axios'
 import ListPage from 'src/components/ListPage.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const multiActions = ref([])
 
@@ -103,6 +106,7 @@ const fetchMultiActions = async () => {
       label: action.nombre,
       action: (row) => {
         console.log(`Acción ejecutada: ${action.nombre}`, row.id)
+        router.push(`/accion/${action.id}/${row.id}`)
       },
       icon: action.icono,
     }))
