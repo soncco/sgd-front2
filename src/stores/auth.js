@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, getActivePinia } from 'pinia'
 import { login, getCurrentUser, logout } from 'src/services/auth'
 
 export const useAuthStore = defineStore('auth', {
@@ -36,6 +36,8 @@ export const useAuthStore = defineStore('auth', {
       this.user = null
       this.isAdmin = false
       this.persona = null
+      // Reset all Pinia stores
+      getActivePinia()._s.forEach((store) => store.$reset())
     },
 
     async initialize() {

@@ -3,14 +3,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { computed } from 'vue'
 import { api } from 'boot/axios'
 import ListPage from 'src/components/ListPage.vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-
-const multiActions = ref([])
 
 const titulo = {
   title: 'Bandeja de Entrada',
@@ -92,38 +90,31 @@ const filters = [
   },
 ]
 
-const fetchMultiActions = async () => {
-  try {
-    const response = await api.get('/api/base/acciones/')
-    const actions = [
-      {
-        label: 'Ver',
-        icon: 'visibility',
-        action: (row) => console.log('Ver acción ejecutada', row.id),
+const table = computed(() => ({
+  endpoint: '/api/tramite/bandeja-entrada/',
+  columns,
+  filters,
+  multiActions: [
+    {
+      label: 'Ver',
+      icon: 'visibility',
+      color: 'primary',
+      action: (row) => {
+        console.log('Ver documento', row)
       },
-    ]
-    const serverActions = response.data.results.map((action) => ({
+    },
+  ],
+  getDynamicActions: async (row) => {
+    const response = await api.get(`/api/base/acciones/?documento=${row.id}`)
+    return response.data.results.map((action) => ({
       label: action.nombre,
       action: (row) => {
         console.log(`Acción ejecutada: ${action.nombre}`, row.id)
         router.push(`/accion/${action.id}/${row.id}`)
       },
       icon: action.icono,
+      color: action.color,
     }))
-    multiActions.value = [...actions, ...serverActions]
-  } catch (error) {
-    console.error('Error fetching multi actions:', error)
-  }
-}
-
-onMounted(() => {
-  fetchMultiActions()
-})
-
-const table = computed(() => ({
-  endpoint: '/api/tramite/bandeja-entrada/',
-  columns,
-  filters,
-  multiActions: multiActions.value,
+  },
 }))
 </script>

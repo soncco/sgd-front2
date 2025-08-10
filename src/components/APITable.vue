@@ -24,12 +24,13 @@
         <q-td>
           <q-btn-dropdown
             :label="props.col.label"
-            @click="() => console.log(multiActions)"
             color="primary"
+            :loading="loadingActions[props.row.id]"
+            @show="handleDropdownShow(props.row)"
           >
             <q-list>
               <q-item
-                v-for="action in multiActions"
+                v-for="action in getRowActions(props.row.id)"
                 :key="action.label"
                 clickable
                 @click="action.action(props.row)"
@@ -37,11 +38,22 @@
                 <q-item-section avatar v-if="action.icon">
                   <q-avatar
                     :icon="action.icon"
-                    :color="action.color"
-                    :text-color="action.textColor"
+                    :color="action.color || 'primary'"
+                    :text-color="action.textColor || 'white'"
                   />
                 </q-item-section>
                 <q-item-section>{{ action.label }}</q-item-section>
+              </q-item>
+              <q-item
+                v-if="getRowActions(props.row.id).length === 0 && !loadingActions[props.row.id]"
+              >
+                <q-item-section>No hay acciones disponibles</q-item-section>
+              </q-item>
+              <q-item v-if="loadingActions[props.row.id]">
+                <q-item-section>
+                  <q-spinner size="20px" />
+                </q-item-section>
+                <q-item-section>Cargando acciones...</q-item-section>
               </q-item>
             </q-list>
           </q-btn-dropdown>
@@ -129,6 +141,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  getDynamicActions: {
+    type: Function,
+    default: null,
+  },
 })
 
 // Variables reactivas para almacenar los datos y el estado de la tabla
@@ -142,6 +158,10 @@ const pagination = ref({
   descending: false,
 })
 
+// Manejar acciones dinámicas
+const loadingActions = ref({})
+const rowActionsCache = ref(new Map())
+
 // Inicializar tableFilters basándose en la configuración de filters
 const tableFilters = ref(
   props.filters.reduce((acc, filter) => {
@@ -154,6 +174,46 @@ const tableFilters = ref(
     return acc
   }, {}),
 )
+
+const handleDropdownShow = (row) => {
+  // Solo cargar acciones dinámicas si la función está definida
+  if (props.getDynamicActions) {
+    loadActionsForRow(row)
+  }
+}
+
+const loadActionsForRow = async (row) => {
+  // Si no hay función de acciones dinámicas, no hacer nada
+  if (!props.getDynamicActions) {
+    return
+  }
+
+  // Si ya están cargadas, no volver a cargar
+  if (rowActionsCache.value.has(row.id)) {
+    return
+  }
+
+  loadingActions.value[row.id] = true
+
+  try {
+    const actions = await props.getDynamicActions(row)
+    rowActionsCache.value.set(row.id, actions)
+  } catch (error) {
+    console.error('Error loading actions for row:', error)
+    rowActionsCache.value.set(row.id, [])
+  } finally {
+    loadingActions.value[row.id] = false
+  }
+}
+
+// Función para obtener acciones de una fila
+const getRowActions = (rowId) => {
+  const staticActions = props.multiActions || []
+  const dynamicActions = rowActionsCache.value.get(rowId) || []
+
+  // Combinar acciones estáticas y dinámicas
+  return [...staticActions, ...dynamicActions]
+}
 
 // Construir parámetros de filtro para enviar al backend
 const buildFilterParams = () => {
