@@ -6,6 +6,9 @@
 import { computed } from 'vue'
 import { api } from 'boot/axios'
 import ListPage from 'src/components/ListPage.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const titulo = {
   title: 'Bandeja de Entrada',
@@ -105,8 +108,9 @@ const table = computed(() => ({
     const response = await api.get(`/api/base/acciones/?documento=${row.id}`)
     return response.data.results.map((action) => ({
       label: action.nombre,
-      action: (rowData) => {
-        console.log(action.tipo, rowData)
+      action: (row) => {
+        console.log(`Acción ejecutada: ${action.nombre}`, row.id)
+        router.push(`/accion/${action.id}/${row.id}`)
       },
       icon: action.icono,
       color: action.color,
