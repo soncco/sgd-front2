@@ -161,6 +161,23 @@
               label="Añadir destinatario"
               @click="addDestinatario"
             />
+
+            <SimpleTitle title="Archivos" />
+            <q-file
+              v-model="info.archivos"
+              label="Adjuntar archivos"
+              multiple
+              filled
+              class="q-mt-md"
+            />
+            <div v-for="(f, i) in info.archivos" :key="i" class="q-mt-sm">
+              <div class="text-caption">{{ f.name }} ({{ (f.size / 1024).toFixed(1) }} KB)</div>
+              <q-input
+                dense
+                v-model="info.archivosDescripciones[i]"
+                label="Descripción (opcional)"
+              />
+            </div>
           </div>
         </div>
         <q-btn
@@ -176,15 +193,17 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, watch } from 'vue'
+import { reactive, onMounted, watch, ref } from 'vue'
 import { Notify } from 'quasar'
 import { useRouter } from 'vue-router'
 import { api } from 'src/boot/axios'
+import { usePersonaStore } from 'src/stores/persona'
 import PageTitle from 'src/components/PageTitle.vue'
 import APISelect from 'src/components/APISelect.vue'
 import SimpleTitle from 'src/components/SimpleTitle.vue'
 
 const router = useRouter()
+const personaStore = usePersonaStore()
 
 const titulo = reactive({
   title: 'Nuevo Documento',
@@ -202,7 +221,11 @@ const info = reactive({
   fecha_documento: '',
   asunto: '',
   destinatarios: [null],
+  archivos: [],
+  archivosDescripciones: [],
 })
+
+const persona = ref({})
 
 const errores = reactive({})
 const errores_texto = reactive({})
@@ -210,13 +233,6 @@ const errores_texto = reactive({})
 const endpoint = '/api/tramite/expedientes/completo/'
 
 const urlPersonasConOficina = '/api/base/personas-con-oficina/'
-
-/*
-const urlPersonasConOficina = computed(() => {
-  if (!info.oficina) return '/api/base/personas-con-oficina/' // sin filtro si no hay oficina
-  return `/api/base/personas-con-oficina/?oficina=${info.oficina.label}`
-})
-  */
 
 const today = new Date().toISOString().slice(0, 10)
 info.fecha_expediente = today
@@ -230,15 +246,13 @@ const oficinaOptions = reactive({
 
 async function fetchPersonaActual() {
   try {
-    const meRes = await api.get('/api/base/me/')
-    const personaId = meRes.data.persona.id
-    const res = await api.get(`/api/base/personas/${personaId}/`)
-    const persona = res.data
+    await personaStore.initialize()
+    persona.value = personaStore.persona
 
-    info.remitente = persona.nombres + ' ' + persona.apellidos
+    info.remitente = `${persona.value.nombres} ${persona.value.apellidos}`
 
     const oficinas =
-      persona.asignaciones_cargo?.map((a) => ({
+      persona.value.asignaciones_cargo?.map((a) => ({
         label: a.oficina_nombre,
         value: a.oficina,
       })) || []
@@ -329,43 +343,46 @@ const submitForm = async () => {
   Object.keys(errores_texto).forEach((k) => (errores_texto[k] = ''))
 
   try {
-    await fetchNumeroDocumento(info.tipo_documento?.id || info.tipo_documento)
+    const formData = new FormData()
+    formData.append('numero', info.expediente)
+    formData.append('estado', 'Abierto')
+    formData.append('responsable', persona.value.id)
 
-    const personaRes = await api.get('/api/base/me/')
-    const persona = personaRes.data.persona.id
+    formData.append('documento[tipo]', info.tipo_documento?.id || info.tipo_documento || '')
+    formData.append('documento[remitente]', persona.value.id)
+    formData.append('documento[numero]', info.numero)
+    formData.append(
+      'documento[asignacion_cargo]',
+      persona.value.asignaciones_cargo?.find((a) => a.oficina === info.oficina?.value)?.id || '',
+    )
+    formData.append('documento[asunto]', info.asunto)
+    formData.append('documento[resumen]', '')
+    formData.append('documento[es_informativo]', false)
 
-    const asignacion = await api.get(`/api/base/personas/${persona}/`)
-    const asignacionId = asignacion.data.asignaciones_cargo?.[0]?.id
+    info.destinatarios
+      .filter((d) => d.persona !== null)
+      .forEach((dest, index) => {
+        formData.append(`documento[destinos_documento][${index}][destinatario]`, dest.persona.id)
+        formData.append(`documento[destinos_documento][${index}][oficina_destino]`, dest.oficina.id)
+      })
 
-    console.log('destinatarios:', info.destinatarios)
+    info.archivos.forEach((file, index) => {
+      formData.append(`documento[archivos][${index}][archivo]`, file)
+      formData.append(
+        `documento[archivos][${index}][descripcion]`,
+        info.archivosDescripciones[index] || '',
+      )
+    })
 
-    const payload = {
-      numero: parseInt(info.expediente),
-      documento: {
-        tipo:
-          typeof info.tipo_documento === 'object' ? info.tipo_documento.id : info.tipo_documento,
-        remitente: persona,
-        numero: parseInt(info.numero),
-        asignacion_cargo: asignacionId,
-        asunto: info.asunto,
-        destinos_documento: info.destinatarios
-          .filter((d) => d !== null)
-          .map((dest) => ({
-            destinatario: dest.persona.id, // Asumiendo que 'dest' es un objeto con 'persona'
-            oficina_destino: info.oficina.value, // Ajusta según cómo venga el dato
-          })),
-      },
-    }
-    console.log('Payload:', payload)
-
-    // const payload = { ...info }
-    await api.post(endpoint, payload)
+    const response = await api.post(endpoint, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    console.log('Documento creado:', response.data)
 
     Notify.create({
       type: 'positive',
       message: 'Documento creado con éxito',
     })
-
     router.push('/bandeja/salida')
   } catch (error) {
     if (error.response?.status === 400) {
