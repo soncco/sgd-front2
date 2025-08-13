@@ -18,12 +18,7 @@
           <q-input outlined readonly :model-value="info.remitente" label="Remitente" />
 
           <!-- Oficina -->
-          <q-input
-            outlined
-            readonly
-            :model-value="info.oficina?.label || info.oficina?.nombre || 'Sin oficina'"
-            label="Oficina"
-          />
+          <q-input outlined readonly :model-value="info.oficina || 'Sin oficina'" label="Oficina" />
 
           <!-- Tipo de documento -->
           <q-input
@@ -113,9 +108,9 @@ const info = reactive({
 function formatDestinatario(dest) {
   if (dest?.persona) {
     const persona = dest.persona.nombre_completo || 'Sin nombre'
-    const cargo = dest.cargo?.nombre || 'Sin cargo'
+    const estado = dest.estado?.nombre || 'Sin estado'
     const oficina = dest.oficina?.nombre || 'Sin oficina'
-    return `${persona}: ${cargo} de ${oficina}`
+    return `${persona}, Oficina: ${oficina}, Estado: ${estado}`
   }
   return ''
 }
@@ -148,7 +143,7 @@ async function fetchDocumento() {
     info.expediente = data.expediente_numero || ''
     info.fecha_expediente = formatFecha(data.fecha) || ''
     info.remitente = data.remitente_nombre || ''
-    info.oficina = data.oficina_nombre || ''
+    info.oficina = data.remitente_oficina || ''
     info.tipo_documento = data.tipo_nombre // puedes poner objeto o solo id
     info.numero = data.numero
     info.fecha_documento = formatFecha(data.fecha)
@@ -156,11 +151,17 @@ async function fetchDocumento() {
 
     // Destinatarios
     info.destinatarios =
-      data.destinos?.map((dest) => ({
-        persona: { id: dest.destinatario, nombre_completo: dest.destinatario_nombre },
-        cargo: { nombre: dest.cargo_nombre || '' }, // agregar si el backend lo manda
-        oficina: { id: dest.oficina_destino, nombre: dest.oficina_destino_nombre },
-      })) || []
+      data.destinos?.map((dest) => {
+        const ultimoEstado = dest.estados?.[dest.estados.length - 1] || null
+        return {
+          persona: { id: dest.destinatario, nombre_completo: dest.destinatario_nombre },
+          estado: {
+            id: ultimoEstado?.id || null,
+            nombre: ultimoEstado?.estado_display || 'Sin estado',
+          },
+          oficina: { id: dest.oficina_destino, nombre: dest.oficina_destino_nombre },
+        }
+      }) || []
 
     // Archivos
     info.archivos =
