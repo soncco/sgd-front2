@@ -137,7 +137,7 @@ async function fetchDocumento() {
     const id = route.params.id
     const res = await api.get(`/api/tramite/documentos/${id}/`)
     const data = res.data
-    console.log('Documento data:', data)
+    //console.log('Documento data:', data)
 
     // Llenar info con lo que venga del backend
     info.expediente = data.expediente_numero || ''
@@ -171,7 +171,7 @@ async function fetchDocumento() {
         descripcion: arch.descripcion || 'Sin descripción',
       })) || []
     info.archivosDescripciones = data.archivos?.map((a) => a.descripcion) || []
-    console.log(info)
+    //console.log(info)
   } catch (error) {
     console.error('Error al obtener documento:', error)
     Notify.create({
