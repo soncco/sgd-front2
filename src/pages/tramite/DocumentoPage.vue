@@ -141,7 +141,7 @@ async function fetchDocumento() {
 
     // Llenar info con lo que venga del backend
     info.expediente = data.expediente_numero || ''
-    info.fecha_expediente = formatFecha(data.fecha) || ''
+    info.fecha_expediente = formatFecha(data.expediente_fecha) || ''
     info.remitente = data.remitente_nombre || ''
     info.oficina = data.remitente_oficina || ''
     info.tipo_documento = data.tipo_nombre // puedes poner objeto o solo id
