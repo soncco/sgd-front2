@@ -105,7 +105,7 @@ const table = computed(() => ({
     },
   ],
   getDynamicActions: async (row) => {
-    const response = await api.get(`/api/base/acciones/?documento=${row.id}`)
+    const response = await api.get(`/api/base/acciones-usuario/?idOficina=${row.id}`)
     return response.data.results.map((action) => ({
       label: action.nombre,
       action: (row) => {
