@@ -5,6 +5,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ListPage from 'src/components/ListPage.vue'
+import router from 'src/router'
 
 const titulo = {
   title: 'Bandeja de Salida',
@@ -17,7 +18,8 @@ const multiActions = ref([
     label: 'Ver',
     icon: 'visibility',
     action: (row) => {
-      console.log('Ver acción ejecutada', row.id)
+      router.push(`/documento/${row.id}`)
+      // console.log('Ver acción ejecutada', row.id)
       // can use router.push
     },
   },

@@ -69,6 +69,11 @@ const routes = [
       { path: 'editarusuario', component: () => import('src/pages/EditarUsuario.vue') },
       { path: 'bandeja/entrada', component: () => import('src/pages/tramite/BandejaEntrada.vue') },
       { path: 'bandeja/salida', component: () => import('src/pages/tramite/BandejaSalida.vue') },
+      {
+        path: 'documento/:id',
+        component: () => import('src/pages/tramite/DocumentoPage.vue'),
+        props: true,
+      },
     ],
     meta: { requiresAuth: true },
   },
