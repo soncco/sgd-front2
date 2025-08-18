@@ -17,6 +17,7 @@ const isEdit = !!id
 const fields = [
   { field: 'nombre', label: 'Nombre', type: 'text' },
   { field: 'descripcion', label: 'Descripción', type: 'textarea', required: false },
+  { field: 'icono', label: 'Ícono', type: 'text' },
 ]
 
 // Configuración del título dinámico
