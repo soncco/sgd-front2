@@ -12,7 +12,10 @@ const props = defineProps({
   },
 });
 
-const fields = [{ field: "nombre", label: "Nombre", type: "text" }];
+const fields = [
+  { field: "nombre", label: "Nombre", type: "text" },
+  { field: "icono", label: "Ícono", type: "text" }, 
+];
 
 const titulo = {
   title: "Editar acción",

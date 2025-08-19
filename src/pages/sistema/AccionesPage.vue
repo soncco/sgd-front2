@@ -28,7 +28,15 @@ const columns = [
     field: 'nombre',
     sortable: true,
   },
+  
   { name: 'actions', label: 'Acciones', align: 'center' },
+  {
+    name: 'icono',
+    label: 'Ícono',
+    align: 'left',
+    field: 'icono',
+    sortable: false, 
+  },
 ]
 
 const filters = [
