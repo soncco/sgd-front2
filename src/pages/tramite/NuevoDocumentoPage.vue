@@ -123,24 +123,42 @@
             />
             <SimpleTitle title="Destinatarios" />
             <div v-for="(dest, index) in info.destinatarios" :key="index" class="q-mb-md">
-              <div class="row items-center">
+              <div class="row items-center q-col-gutter-md">
+                <!-- Oficina destino -->
                 <div class="col">
                   <APISelect
-                    v-model="info.destinatarios[index]"
-                    label="Destinatario"
-                    :url="urlPersonasConOficina"
-                    :field="
-                      (item) =>
-                        `${item.persona.nombre_completo}: ${item.cargo.nombre} de ${item.oficina.nombre}`
-                    "
-                    :option-value="(item) => item"
-                    option-label="nombre_completo"
+                    v-model="info.destinatarios[index].oficina"
+                    label="Oficina destino"
+                    url="/api/base/oficinas/"
+                    field="nombre"
+                    option-value="id"
+                    option-label="nombre"
                     dense
                     :return-object="true"
-                    :error-message="errores_texto[`destinatarios.${index}`]"
-                    :error="errores[`destinatarios.${index}`]"
+                    :error-message="errores_texto[`destinatarios.${index}.oficina`]"
+                    :error="errores[`destinatarios.${index}.oficina`]"
+                    @update:model-value="onOficinaChange(index)"
                   />
                 </div>
+
+                <!-- Persona en esa oficina -->
+                <div class="col">
+                  <APISelect
+                    v-model="info.destinatarios[index].persona"
+                    :url="personasUrl(index)"
+                    label="Persona destino"
+                    :field="(item) => `${item.persona.nombre_completo} — ${item.cargo.nombre}`"
+                    :option-value="(item) => item"
+                    option-label="persona.nombre_completo"
+                    dense
+                    :return-object="true"
+                    :disable="!info.destinatarios[index].oficina"
+                    :placeholder="!info.destinatarios[index].oficina ? 'Primero seleccione una oficina' : 'Seleccione persona'"
+                  />
+
+                </div>
+
+                <!-- Botón eliminar -->
                 <div class="col-auto">
                   <q-btn
                     dense
@@ -153,6 +171,7 @@
                 </div>
               </div>
             </div>
+
 
             <q-btn
               flat
@@ -220,7 +239,7 @@ const info = reactive({
   numero: '',
   fecha_documento: '',
   asunto: '',
-  destinatarios: [null],
+  destinatarios: [{oficina: null, persona : null}],
   archivos: [],
   archivosDescripciones: [],
 })
@@ -232,7 +251,7 @@ const errores_texto = reactive({})
 
 const endpoint = '/api/tramite/expedientes/completo/'
 
-const urlPersonasConOficina = '/api/base/personas-con-oficina/'
+//const urlPersonasConOficina = '/api/base/personas-con-oficina/'
 
 const today = new Date().toISOString().slice(0, 10)
 info.fecha_expediente = today
@@ -280,7 +299,7 @@ async function fetchPersonaActual() {
 }
 
 function addDestinatario() {
-  info.destinatarios.push(null)
+  info.destinatarios.push({oficina : null, persona: null})
 }
 function removeDestinatario(index) {
   if (info.destinatarios.length > 1) {
@@ -292,6 +311,19 @@ function removeDestinatario(index) {
     })
   }
 }
+
+function onOficinaChange(index) {
+  // limpiar la persona cada vez que se cambie la oficina en 
+  // el apiselect
+  info.destinatarios[index].persona = null
+}
+
+// <script setup>
+function personasUrl(index) {
+  const id = info.destinatarios[index]?.oficina?.id
+  return id ? `/api/base/personas-con-oficina/?oficina=${id}` : null
+}
+
 
 async function fetchNumeroExpediente() {
   try {
@@ -367,7 +399,7 @@ const submitForm = async () => {
     info.destinatarios
       .filter((d) => d.persona !== null)
       .forEach((dest, index) => {
-        formData.append(`documento[destinos_documento][${index}][destinatario]`, dest.persona.id)
+        formData.append(`documento[destinos_documento][${index}][destinatario]`, dest.persona.persona.id)
         formData.append(`documento[destinos_documento][${index}][oficina_destino]`, dest.oficina.id)
       })
 
