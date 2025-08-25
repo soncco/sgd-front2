@@ -74,6 +74,11 @@ const routes = [
         component: () => import('src/pages/tramite/DocumentoPage.vue'),
         props: true,
       },
+      {
+        path: 'documento/responder/:id',
+        component: () => import('src/pages/tramite/ResponderDocumentoPage.vue'),
+        props: true,
+      },
     ],
     meta: { requiresAuth: true },
   },
