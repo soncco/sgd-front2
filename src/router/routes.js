@@ -77,6 +77,18 @@ const routes = [
     ],
     meta: { requiresAuth: true },
   },
+
+  {
+    path: '/mesa-de-partes',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      {
+        path: '',
+        component: () => import('src/pages/tramite/MesaDePartes.vue')
+      }
+    ]
+  },
+  
   {
     path: '/login',
     component: () => import('layouts/AuthLayout.vue'),

@@ -43,5 +43,7 @@ const opciones = ref([
       { value: 'usuario', label: 'Por usuario' },
     ],
   },
+  { clave: 'tramite_oficina', label: 'Oficina de Mesa de Partes'},
+  { clave: 'tramite_destinatario', label: 'Destinatario Mesa de Partes'},
 ])
 </script>
