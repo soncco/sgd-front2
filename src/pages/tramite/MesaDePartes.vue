@@ -170,7 +170,7 @@
               <q-card-section>
                 <div class="text-h6">Datos del Documento</div>
                 <!-- mostramos el nombre usando computed tipoDocumentoNombre -->
-                <p><b>Tipo:</b> {{ tipoDocumentoNombre }} (ID: {{ form.tipo_documento || '-' }})</p>
+                <p><b>Tipo:</b> {{ tipoDocumentoNombre }}</p>
                 <p><b>Asunto:</b> {{ form.asunto }}</p>
               </q-card-section>
             </q-card>
