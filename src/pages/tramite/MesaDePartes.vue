@@ -254,7 +254,6 @@ async function fetchNumeroExpediente() {
 async function fetchTiposDocumento() {
   try {
     const { data } = await api.get('/api/base/tipos-documento-publicos/')
-    // el endpoint devuelve paginado: {count, next, previous, results}
     tiposDocumento.value = data.results || data
     tiposDocumentoOptions.value = data.results || data
     console.log('Tipos documento cargados:', tiposDocumento.value)
@@ -276,7 +275,7 @@ const form = reactive({
   remitente_celular: '',
   tipo_documento: null, // aquí guardamos el ID (number)
   asunto: '',
-  archivos: [] // Array de objetos con estructura: { id, file, descripcion }
+  archivos: [] // Array de objetos 
 })
 
 // computed para mostrar el nombre del tipo seleccionado
@@ -317,7 +316,7 @@ function onRejectedFiles(rejectedEntries) {
   })
 }
 
-// Función para manejar cuando se seleccionan archivos (automáticamente los agrega)
+// Función para manejar cuando se seleccionan archivos 
 function onFilesSelected(files) {
   if (!files || files.length === 0) {
     return
@@ -406,7 +405,6 @@ async function submitForm() {
   try {
     submitting.value = true
     
-    // validación final
     if (!form.tipo_documento || !form.asunto || !form.asunto.trim()) {
       Notify.create({ type: 'negative', message: 'Faltan campos requeridos (tipo y asunto)' })
       return
@@ -428,10 +426,8 @@ async function submitForm() {
     fd.append('remitente_celular', form.remitente_celular.trim())
 
     // Documento: **clave exacta que espera el backend** -> 'documento[tipo]'
-    // pasamos el ID como string (FormData siempre manda strings)
     fd.append('documento[tipo]', String(form.tipo_documento))
     fd.append('documento[asunto]', form.asunto.trim())
-    // NO enviamos documento[fecha_documento] porque dijiste que backend no lo requiere
 
     // Archivos: lista, cada uno con su descripcion
     if (form.archivos && form.archivos.length > 0) {
@@ -441,7 +437,6 @@ async function submitForm() {
       })
     }
 
-    // DEBUG: listar FormData (no mostrará binarios completos en consola)
     for (const pair of fd.entries()) {
       if (pair[1] instanceof File) {
         console.log('FormData =>', pair[0], `[File: ${pair[1].name}, ${pair[1].size} bytes]`)
@@ -450,9 +445,8 @@ async function submitForm() {
       }
     }
 
-    // IMPORTANTE: NO fijar manualmente 'Content-Type' aquí. Deja que axios/browser lo asigne
     const response = await api.post('/api/tramite/mesa-partes/', fd, {
-      timeout: 60000, // 60 segundos para archivos grandes
+      timeout: 10000, // 10 segundos para archivos grandes
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total) {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
@@ -474,7 +468,7 @@ async function submitForm() {
     
   } catch (error) {
     console.error('Error submit:', error)
-    // procesar errores del backend para mostrarlos bonitos
+    // procesar errores del backend para mostrarlos 
     let errorMessage = 'Error al registrar documento'
     
     if (error.code === 'ECONNABORTED') {
@@ -527,7 +521,7 @@ function resetForm() {
     archivos: []
   })
   
-  // Limpiar también la selección temporal
+  // Limpiar  la selección temporal
   selectedFiles.value = []
   fileIdCounter = 0
 }
