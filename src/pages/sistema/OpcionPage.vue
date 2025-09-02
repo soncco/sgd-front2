@@ -13,6 +13,7 @@
             :label="opcion.label"
             :tipo="opcion.tipo"
             :opciones="opcion.options"
+            :apiurl="opcion.apiurl"
           />
         </div>
       </div>
@@ -45,5 +46,6 @@ const opciones = ref([
   },
   { clave: 'tramite_oficina', label: 'Oficina de Mesa de Partes'},
   { clave: 'tramite_destinatario', label: 'Destinatario Mesa de Partes'},
+
 ])
 </script>

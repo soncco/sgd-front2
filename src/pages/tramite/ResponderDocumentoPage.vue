@@ -9,17 +9,16 @@
             <SimpleTitle title="Información" />
             <q-input
               outlined
+              readonly
               required
               v-model="info.expediente"
               label="Expediente"
               maxlength="50"
               :error-message="errores_texto.expediente"
               :error="errores.expediente"
-              readonly
             />
             <q-input
               outlined
-              type="date"
               required
               v-model="info.fecha_expediente"
               label="Fecha expediente"
@@ -37,40 +36,15 @@
               :error="errores.remitente"
               readonly
             />
-
-            <!-- Oficina: readonly, vacío con mensaje, o APISelect -->
-            <template v-if="oficinaOptions.readonly">
-              <q-input
-                outlined
-                required
-                v-model="info.oficina"
-                label="Oficina"
-                maxlength="255"
-                :error-message="errores_texto.oficina"
-                :error="errores.oficina"
-                readonly
-              />
-              <q-banner
-                v-if="oficinaOptions.showNoOficinaMsg"
-                class="q-mt-sm"
-                color="negative"
-                dense
-              >
-                No tiene oficinas asignadas
-              </q-banner>
-            </template>
-            <q-select
-              v-else
+            <q-input
               outlined
-              label="Oficina"
+              required
               v-model="info.oficina"
-              :options="oficinaOptions.options"
-              option-label="label"
-              option-value="value"
+              label="Oficina"
+              maxlength="255"
               :error-message="errores_texto.oficina"
               :error="errores.oficina"
-              dense
-              clearable
+              readonly
             />
 
             <!-- Tipo de documento -->
@@ -121,45 +95,15 @@
               :error-message="errores_texto.asunto"
               :error="errores.asunto"
             />
-            <SimpleTitle title="Destinatarios" />
-            <div v-for="(dest, index) in info.destinatarios" :key="index" class="q-mb-md">
-              <div class="row items-center">
-                <div class="col">
-                  <APISelect
-                    v-model="info.destinatarios[index]"
-                    label="Destinatario"
-                    :url="urlPersonasConOficina"
-                    :field="
-                      (item) =>
-                        `${item.persona.nombre_completo}: ${item.cargo.nombre} de ${item.oficina.nombre}`
-                    "
-                    :option-value="(item) => item"
-                    option-label="nombre_completo"
-                    dense
-                    :return-object="true"
-                    :error-message="errores_texto[`destinatarios.${index}`]"
-                    :error="errores[`destinatarios.${index}`]"
-                  />
-                </div>
-                <div class="col-auto">
-                  <q-btn
-                    dense
-                    flat
-                    round
-                    icon="delete"
-                    color="negative"
-                    @click="removeDestinatario(index)"
-                  />
-                </div>
-              </div>
-            </div>
+            <SimpleTitle title="Destinatario" />
 
-            <q-btn
-              flat
-              color="primary"
-              icon="add"
-              label="Añadir destinatario"
-              @click="addDestinatario"
+            <q-input
+              outlined
+              required
+              :model-value="`${info.destinatarios[0]?.persona.nombre_completo} - ${info.destinatarios[0]?.oficina.nombre}`"
+              label="Destinatario"
+              maxlength="255"
+              readonly
             />
 
             <SimpleTitle title="Archivos" />
@@ -194,8 +138,8 @@
 
 <script setup>
 import { reactive, onMounted, watch, ref } from 'vue'
-import { Notify, Loading} from 'quasar'
-import { useRouter } from 'vue-router'
+import { Notify } from 'quasar'
+import { useRouter, useRoute } from 'vue-router'
 import { api } from 'src/boot/axios'
 import { usePersonaStore } from 'src/stores/persona'
 import PageTitle from 'src/components/PageTitle.vue'
@@ -203,12 +147,12 @@ import APISelect from 'src/components/APISelect.vue'
 import SimpleTitle from 'src/components/SimpleTitle.vue'
 
 const router = useRouter()
-
+const route = useRoute()
 const personaStore = usePersonaStore()
 
 const titulo = reactive({
-  title: 'Nuevo Documento',
-  icon: 'description',
+  title: 'Responder Documento',
+  icon: 'reply',
   buttons: [{ label: 'Ver todos los Documentos', icon: 'list', route: '/documentos' }],
 })
 
@@ -221,7 +165,7 @@ const info = reactive({
   numero: '',
   fecha_documento: '',
   asunto: '',
-  destinatarios: [null],
+  destinatarios: [],
   archivos: [],
   archivosDescripciones: [],
 })
@@ -231,12 +175,7 @@ const persona = ref({})
 const errores = reactive({})
 const errores_texto = reactive({})
 
-const endpoint = '/api/tramite/expedientes/completo/'
-
-const urlPersonasConOficina = '/api/base/personas-con-oficina/'
-
 const today = new Date().toISOString().slice(0, 10)
-info.fecha_expediente = today
 info.fecha_documento = today
 
 const oficinaOptions = reactive({
@@ -244,6 +183,65 @@ const oficinaOptions = reactive({
   showNoOficinaMsg: false,
   options: [],
 })
+
+// Format for date display
+function formatFecha(fecha) {
+  if (!fecha) return ''
+  const date = new Date(fecha)
+  return date.toLocaleDateString('es-PE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }) /* +
+    ' ' +
+    date.toLocaleTimeString('es-PE', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })*/
+}
+
+// Datos de documento a responder
+async function fetchDocumento() {
+  try {
+    const id = route.params.id
+    const res = await api.get(`/api/tramite/documentos/${id}/`)
+    const data = res.data
+    console.log('Documento data:', data)
+
+    // Llenar info del documento (expediente, fecha-expediente, remitente, oficina, destinatario)
+
+    // Documento padre
+    info.documento_padre = data.id || null
+
+    // Expediente (se mantiene igual)
+    info.expediente_id = data.expediente || ''
+    info.expediente = data.expediente_numero || ''
+    info.fecha_expediente = formatFecha(data.expediente_fecha) || ''
+
+    // Remitente: será el usuario actual, lo seteamos en fetchPersonaActual()
+    // Solo dejamos espacio para mostrar en pantalla el original (si quieres)
+    info.remitente_original = data.remitente_nombre || ''
+    info.oficina_original = data.remitente_oficina || ''
+
+    // Nuevo destinatario = remitente original
+    info.destinatarios = [
+      {
+        persona: { id: data.remitente, nombre_completo: data.remitente_nombre },
+        oficina: { id: data.remitente_oficina, nombre: data.remitente_oficina_nombre },
+      },
+    ]
+
+    console.log('info: ', info)
+    //console.log(info)
+  } catch (error) {
+    console.error('Error al obtener documento:', error)
+    Notify.create({
+      type: 'negative',
+      message: 'No se pudo cargar el documento',
+    })
+    router.push('/bandeja/salida')
+  }
+}
 
 async function fetchPersonaActual() {
   try {
@@ -280,33 +278,6 @@ async function fetchPersonaActual() {
   }
 }
 
-function addDestinatario() {
-  info.destinatarios.push(null)
-}
-function removeDestinatario(index) {
-  if (info.destinatarios.length > 1) {
-    info.destinatarios.splice(index, 1)
-  } else {
-    Notify.create({
-      type: 'warning',
-      message: 'Debe haber al menos un destinatario',
-    })
-  }
-}
-
-async function fetchNumeroExpediente() {
-  try {
-    const res = await api.get('/api/tramite/expedientes/next-number/')
-    info.expediente = res.data.next_number
-  } catch (error) {
-    console.error('Error al obtener número de expediente:', error)
-    Notify.create({
-      type: 'negative',
-      message: 'No se pudo obtener el número de expediente',
-    })
-  }
-}
-
 async function fetchNumeroDocumento(tipo_id) {
   if (!tipo_id) {
     info.numero = ''
@@ -328,7 +299,7 @@ async function fetchNumeroDocumento(tipo_id) {
 }
 
 onMounted(() => {
-  fetchNumeroExpediente()
+  fetchDocumento()
   fetchPersonaActual()
 })
 
@@ -339,53 +310,92 @@ watch(
   },
 )
 
+// ... dentro de <script setup>
+
 const submitForm = async () => {
+  // Limpia los errores existentes
   Object.keys(errores).forEach((k) => (errores[k] = false))
   Object.keys(errores_texto).forEach((k) => (errores_texto[k] = ''))
-  
+
   try {
-    Loading.show({
-    message: 'Guardando documento...',
-    spinnerColor: 'white'
-  })
-
     const formData = new FormData()
-    formData.append('numero', info.expediente)
-    formData.append('estado', 'Abierto')
-    formData.append('responsable', persona.value.id)
 
-    formData.append('documento[tipo]', info.tipo_documento?.id || info.tipo_documento || '')
-    formData.append('documento[remitente]', persona.value.id)
-    formData.append('documento[numero]', info.numero)
-    debugger
-    formData.append(
-      'documento[asignacion_cargo]',
-      persona.value.asignaciones_cargo?.find((a) => a.oficina_nombre === info.oficina)?.id || '',
-    )
-    formData.append('documento[asunto]', info.asunto)
-    formData.append('documento[resumen]', '')
-    formData.append('documento[es_informativo]', false)
+    // 1. Obtener el ID del expediente
+    // Asume que el ID del expediente original está disponible en 'info.expediente_id'
+    // Si no lo tienes, deberás ajustarlo en fetchDocumento() para obtener el ID real.
+    const expedienteId = info.expediente_id // <-- CAMBIO CLAVE
 
-    info.destinatarios
-      .filter((d) => d.persona !== null)
-      .forEach((dest, index) => {
-        formData.append(`documento[destinos_documento][${index}][destinatario]`, dest.persona.id)
-        formData.append(`documento[destinos_documento][${index}][oficina_destino]`, dest.oficina.id)
+    // 2. Apuntar al endpoint correcto
+    const endpoint = `/api/tramite/expedientes/${expedienteId}/documentos/`
+
+    // 3. Agregar los campos del documento al FormData
+    // Los campos ya no necesitan el prefijo 'documento[...]' si tu backend
+    // lo espera directamente en el payload principal.
+    // Si tu backend espera 'documento[...]', mantén la estructura.
+
+    // Si usas JSON como en la última implementación:
+    const payload = {
+      numero: info.numero,
+      tipo: info.tipo_documento,
+      remitente: persona.value.id,
+      asignacion_cargo: persona.value.asignaciones_cargo?.find(
+        (a) => a.oficina_nombre === info.oficina,
+      )?.id,
+      documento_padre: info.documento_padre,
+      asunto: info.asunto,
+      resumen: info.resumen, // Asegúrate de que este campo exista en tu reactive
+      es_informativo: false, // O el valor que corresponda
+      destinos_documento: info.destinatarios.map((d) => ({
+        destinatario: d.persona.id,
+        oficina_destino: d.oficina.id,
+        es_delegacion: false, // O el valor que corresponda
+      })),
+    }
+    console.log(payload)
+
+    // Manejar el caso de multipart/form-data con archivos
+    if (info.archivos && info.archivos.length > 0) {
+      // Si hay archivos, usamos FormData
+      formData.append('numero', info.numero || '')
+      formData.append('tipo', info.tipo_documento || '')
+      formData.append('remitente', persona.value.id)
+      formData.append(
+        'asignacion_cargo',
+        persona.value.asignaciones_cargo?.find((a) => a.oficina_nombre === info.oficina)?.id || '',
+      )
+      formData.append('documento_padre', info.documento_padre || '')
+      formData.append('asunto', info.asunto)
+      formData.append('resumen', info.resumen)
+      formData.append('es_informativo', false)
+
+      info.destinatarios.forEach((dest, index) => {
+        formData.append(`destinos_documento[${index}][destinatario]`, dest.persona.id)
+        formData.append(`destinos_documento[${index}][oficina_destino]`, dest.oficina.id)
+        formData.append(`destinos_documento[${index}][es_delegacion]`, false) // faltaba
       })
 
-    info.archivos.forEach((file, index) => {
-      formData.append(`documento[archivos][${index}][archivo]`, file)
-      formData.append(
-        `documento[archivos][${index}][descripcion]`,
-        info.archivosDescripciones[index] || '',
-      )
-    })
+      info.archivos.forEach((file, index) => {
+        formData.append(`documento[archivos][${index}][archivo]`, file)
+        formData.append(
+          `documento[archivos][${index}][descripcion]`,
+          info.archivosDescripciones[index] || '',
+        )
+      })
 
-    const response = await api.post(endpoint, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-    console.log('Documento creado:', response.data)
+      const obj = Object.fromEntries(formData.entries())
+      console.log('Formdata generado: ', obj)
 
+      const response = await api.post(endpoint, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      console.log('Documento creado:', response.data)
+    } else {
+      // Si no hay archivos, podemos usar JSON puro
+      const response = await api.post(endpoint, payload)
+      console.log('Documento creado:', response.data)
+    }
+
+    // Notificación de éxito y redirección
     Notify.create({
       type: 'positive',
       message: 'Documento creado con éxito',
@@ -406,9 +416,6 @@ const submitForm = async () => {
       type: 'negative',
       message: 'Revisa los errores en el formulario',
     })
-  }
-  finally {
-    Loading.hide()
   }
 }
 </script>
