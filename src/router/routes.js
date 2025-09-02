@@ -79,6 +79,11 @@ const routes = [
         component: () => import('src/pages/tramite/ResponderDocumentoPage.vue'),
         props: true,
       },
+      {
+        path: 'expediente/:numero/seguimiento',
+        component: () => import('src/pages/tramite/SeguimientoExpedientePage.vue'),
+        props: true,
+      },
     ],
     meta: { requiresAuth: true },
   },

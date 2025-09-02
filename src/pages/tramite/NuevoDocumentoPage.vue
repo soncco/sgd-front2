@@ -352,9 +352,10 @@ const submitForm = async () => {
     formData.append('documento[tipo]', info.tipo_documento?.id || info.tipo_documento || '')
     formData.append('documento[remitente]', persona.value.id)
     formData.append('documento[numero]', info.numero)
+    debugger
     formData.append(
       'documento[asignacion_cargo]',
-      persona.value.asignaciones_cargo?.find((a) => a.oficina === info.oficina?.value)?.id || '',
+      persona.value.asignaciones_cargo?.find((a) => a.oficina_nombre === info.oficina)?.id || '',
     )
     formData.append('documento[asunto]', info.asunto)
     formData.append('documento[resumen]', '')
