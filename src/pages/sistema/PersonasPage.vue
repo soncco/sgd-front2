@@ -50,6 +50,11 @@ const filters = [
     type: 'text',
     field: 'term',
   },
+  {
+    label: 'Tipo de Documento',
+    type: 'select',
+    field: 'tipo_doc',
+  },
 ]
 
 const editPersona = (row) => {
