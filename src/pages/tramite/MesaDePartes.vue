@@ -39,10 +39,39 @@
         <!-- Paso 1: Datos del Remitente -->
         <q-step :name="1" title="Datos del Remitente" icon="person" :done="step > 1">
           <q-form @submit.prevent="nextStep">
-            <q-input outlined v-model="form.remitente_nombres" label="Nombres" required />
-            <q-input outlined v-model="form.remitente_apellidos" label="Apellidos" required />
-            <q-input outlined v-model="form.remitente_documento" label="Documento de identidad" required />
-            <q-input outlined v-model="form.remitente_email" label="Correo electrónico" type="email" required />
+            
+            <q-select
+              v-model="form.remitente_tipo_persona"
+              :options="tiposPersonaOptions"
+              option-value="value"
+              option-label="label"
+              emit-value
+              map-options
+              outlined
+              label="Tipo de Persona"
+              dense
+              required
+              class="q-mb-md"
+            />
+
+            <q-select
+              v-model="form.remitente_tipo_doc"
+              :options="tiposDocOptions"
+              option-value="value"
+              option-label="label"
+              emit-value
+              map-options
+              outlined
+              label="Tipo de Documento"
+              dense
+              required
+              class="q-mb-md"
+            />
+
+            <q-input outlined v-model="form.remitente_nombres" label="Nombres" required class="q-mb-md" />
+            <q-input outlined v-model="form.remitente_apellidos" label="Apellidos" required class="q-mb-md" />
+            <q-input outlined v-model="form.remitente_documento" label="Número de documento" required class="q-mb-md" />
+            <q-input outlined v-model="form.remitente_email" label="Correo electrónico" type="email" required class="q-mb-md" />
             <q-input
               outlined
               v-model="form.remitente_celular"
@@ -50,6 +79,7 @@
               type="tel"
               :rules="[val => /^\d{9}$/.test(val) || 'Debe tener 9 dígitos']"
               required
+              class="q-mb-md"
             />
 
             <div class="q-mt-md">
@@ -57,7 +87,6 @@
             </div>
           </q-form>
         </q-step>
-
         <!-- Paso 2: Datos del Documento -->
         <q-step :name="2" title="Datos del Documento" icon="description" :done="step > 2">
           <q-form @submit.prevent="nextStep">
@@ -158,6 +187,8 @@
             <q-card flat bordered>
               <q-card-section>
                 <div class="text-h6">Datos del Remitente</div>
+                <p><b>Tipo de Persona:</b> {{ tipoPersonaLabel }}</p>
+                <p><b>Tipo de Documento:</b> {{ tipoDocLabel }}</p>
                 <p><b>Nombres:</b> {{ form.remitente_nombres }}</p>
                 <p><b>Apellidos:</b> {{ form.remitente_apellidos }}</p>
                 <p><b>DNI:</b> {{ form.remitente_documento }}</p>
@@ -238,6 +269,20 @@ const selectedFiles = ref([])
 const tiposDocumento = ref([])
 const tiposDocumentoOptions = ref([])
 
+const tiposPersonaOptions = ref([
+  { value: '1', label: 'Persona natural' },
+  { value: '2', label: 'Persona jurídica' }
+])
+
+const tiposDocOptions = ref([
+  { value: '1', label: 'DNI' },
+  { value: '2', label: 'RUC' },
+  { value: '3', label: 'Carnet de extranjería' },
+  { value: '4', label: 'Pasaporte' },
+  { value: '5', label: 'Sin documento (Código temporal)' },
+  { value: '6', label: 'Permiso temporal del permanencia' }
+])
+
 // Contador para IDs únicos de archivos
 let fileIdCounter = 0
 
@@ -273,9 +318,11 @@ const form = reactive({
   remitente_documento: '',
   remitente_email: '',
   remitente_celular: '',
-  tipo_documento: null, // aquí guardamos el ID (number)
+  remitente_tipo_persona: '1', //  default Persona natural
+  remitente_tipo_doc: '1',     // default DNI
+  tipo_documento: null,       // aquí guardamos el ID 
   asunto: '',
-  archivos: [] // Array de objetos 
+  archivos: [] 
 })
 
 // computed para mostrar el nombre del tipo seleccionado
@@ -283,6 +330,16 @@ const tipoDocumentoNombre = computed(() => {
   if (!form.tipo_documento || !tiposDocumento.value.length) return 'No seleccionado'
   const t = tiposDocumento.value.find(x => x.id === form.tipo_documento)
   return t ? t.nombre : 'No encontrado'
+})
+
+const tipoPersonaLabel = computed(() => {
+  const tipo = tiposPersonaOptions.value.find(x => x.value === form.remitente_tipo_persona)
+  return tipo ? tipo.label : 'No seleccionado'
+})
+
+const tipoDocLabel = computed(() => {
+  const tipo = tiposDocOptions.value.find(x => x.value === form.remitente_tipo_doc)
+  return tipo ? tipo.label : 'No seleccionado'
 })
 
 // Función para formatear el tamaño del archivo
@@ -424,6 +481,9 @@ async function submitForm() {
     fd.append('remitente_documento', form.remitente_documento.trim())
     fd.append('remitente_email', form.remitente_email.trim())
     fd.append('remitente_celular', form.remitente_celular.trim())
+    fd.append('remitente_tipo_persona', form.remitente_tipo_persona) 
+    fd.append('remitente_tipo_doc', form.remitente_tipo_doc)         
+
 
     // Documento: **clave exacta que espera el backend** -> 'documento[tipo]'
     fd.append('documento[tipo]', String(form.tipo_documento))
@@ -516,6 +576,9 @@ function resetForm() {
     remitente_documento: '',
     remitente_email: '',
     remitente_celular: '',
+    remitente_tipo_persona: '1', // default
+    remitente_tipo_doc: '1',     //  default
+
     tipo_documento: null,
     asunto: '',
     archivos: []
