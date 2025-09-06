@@ -78,6 +78,8 @@
               :options="filter.options || []"
               outlined
               dense
+              emit-value
+              map-options
               @update:model-value="onFilterChange"
             />
             <APISelect

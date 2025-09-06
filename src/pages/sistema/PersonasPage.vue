@@ -54,6 +54,14 @@ const filters = [
     label: 'Tipo de Documento',
     type: 'select',
     field: 'tipo_doc',
+    options: [
+      { label: 'DNI', value: '1' },
+      { label: 'RUC', value: '2' },
+      { label: 'Carnet de extranjería', value: '3' },
+      { label: 'Pasaporte', value: '4' },
+      { label: 'Sin documento (Código temporal)', value: '5' },
+      { label: 'Permiso temporal del permanencia', value: '6' },
+    ],
   },
 ]
 
