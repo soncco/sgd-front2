@@ -90,7 +90,7 @@
           </q-step>
 
           <!-- Paso 2: Datos del Documento -->
-          <q-step :name="2" title="Datos del Documento" icon="description" :done="step > 2">
+          <q-step :name="2" title="Datos del Documento" icon="description" :done="step > 2" :disable="maxStepReached < 2">
             <q-form @submit.prevent="nextStep" class="q-gutter-md">
               <!-- q-select: emit-value hace que v-model guarde SOLO el id (valor numérico). -->
               <q-select
@@ -115,7 +115,7 @@
           </q-step>
 
           <!-- Paso 3: Adjuntar archivos -->
-          <q-step :name="3" title="Archivos" icon="attach_file" :done="step > 3">
+          <q-step :name="3" title="Archivos" icon="attach_file" :done="step > 3" :disable="maxStepReached < 3">
             <q-form @submit.prevent="nextStep">
               <!-- File uploader para múltiples archivos -->
               <q-file
@@ -184,7 +184,7 @@
           </q-step>
 
           <!-- Paso 4: Confirmación -->
-          <q-step :name="4" title="Confirmación" icon="check_circle">
+          <q-step :name="4" title="Confirmación" icon="check_circle" :disable="maxStepReached < 4">
             <div class="q-gutter-md">
               <q-card flat bordered>
                 <q-card-section>
@@ -253,6 +253,22 @@
         </q-stepper>
        </div>
     </div>
+    <q-dialog v-model="showDialog" persistent>
+      <q-card class="q-pa-lg text-center">
+        <q-card-section>
+          <div class="text-h5 text-bold text-positive">¡Felicidades!</div>
+          <div class="text-subtitle1 q-mt-md">
+            Su número de expediente es:
+          </div>
+          <div class="text-h4 text-primary q-mt-sm">{{ expedienteGenerado }}</div>
+        </q-card-section>
+
+        <q-card-actions align="center">
+          <q-btn label="Aceptar" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
@@ -267,6 +283,8 @@ const fechaActual = ref(new Date().toISOString().split('T')[0])
 const numeroExpediente = ref('Cargando...')
 const submitting = ref(false)
 const selectedFiles = ref([])
+const showDialog = ref(false)
+const expedienteGenerado = ref('')
 
 const tiposPersonaOptions = ref([
   { value: '1', label: 'Persona natural' },
@@ -446,19 +464,40 @@ function removeFile(index) {
   }
 }
 
+const maxStepReached = ref(1)
+
 function nextStep() {
-  if (step.value === 2) {
-    if (!form.tipo_documento || !form.asunto || !form.asunto.trim()) {
-      Notify.create({ type: 'negative', message: 'Por favor completa tipo de documento y asunto' })
+  // Validaciones
+  if (step.value === 1) {
+    if (!form.remitente_nombres.trim() || !form.remitente_apellidos.trim() ||
+        !form.remitente_documento.trim() || !form.remitente_email.trim() ||
+        !form.remitente_celular.trim()) {
+      Notify.create({ type: 'negative', message: 'Completa todos los campos del remitente' })
+      return
+    }
+    if (!/^\d{9}$/.test(form.remitente_celular)) {
+      Notify.create({ type: 'negative', message: 'El celular debe tener 9 dígitos' })
       return
     }
   }
+
+  if (step.value === 2) {
+    if (!form.tipo_documento) {
+      Notify.create({ type: 'negative', message: 'Selecciona un tipo de documento' })
+      return
+    }
+    if (!form.asunto.trim()) {
+      Notify.create({ type: 'negative', message: 'El asunto no puede estar vacío' })
+      return
+    }
+  }
+
   step.value++
+  if (step.value > maxStepReached.value) {
+    maxStepReached.value = step.value
+  }
 }
 
-function prevStep() {
-  step.value--
-}
 
 async function submitForm() {
   if (submitting.value) return
@@ -522,13 +561,18 @@ async function submitForm() {
     console.log('Respuesta:', response.data)
     Notify.create({ 
       type: 'positive', 
-      message: `Documento registrado correctamente. ${form.archivos.length > 0 ? `Se subieron ${form.archivos.length} archivo(s).` : ''}`,
-      timeout: 5000
+      message: `Documento registrado correctamente.`,
+      timeout: 3000
     })
-    
+
+    // mostrar el diálogo con el número de expediente actual
+    expedienteGenerado.value = numeroExpediente.value
+    showDialog.value = true
+
     resetForm()
     step.value = 1
     await fetchNumeroExpediente()
+
     
   } catch (error) {
     console.error('Error submit:', error)
