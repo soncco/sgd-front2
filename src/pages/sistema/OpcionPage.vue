@@ -44,17 +44,8 @@ const opciones = ref([
       { value: 'usuario', label: 'Por usuario' },
     ],
   },
-  {
-    clave: 'oficina_mesa_partes',
-    label: 'Oficina de Mesa de Partes',
-    tipo: 'apiselect',
-    apiurl: '/api/base/oficinas/',
-  },
-  {
-    clave: 'destinatario_mesa_partes',
-    label: 'Destinatario para Mesa de Partes',
-    tipo: 'apiselect',
-    apiurl: '/api/base/cargos/',
-  },
+  { clave: 'tramite_oficina', label: 'Oficina de Mesa de Partes'},
+  { clave: 'tramite_destinatario', label: 'Destinatario Mesa de Partes'},
+
 ])
 </script>

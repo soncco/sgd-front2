@@ -20,7 +20,7 @@ const fields = [
     comboField: 'nombre',
     label: 'Depende de',
     type: 'apiselect',
-    url: '/api/base/oficinas/',
+    url: `/api/base/oficinas/?exclude=${props.id}`,
   },
 ]
 

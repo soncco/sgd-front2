@@ -71,6 +71,17 @@
               dense
               @update:model-value="onFilterChange"
             />
+            <q-select
+              v-else-if="filter.type === 'select'"
+              v-model="tableFilters[filter.field]"
+              :label="filter.label"
+              :options="filter.options || []"
+              outlined
+              dense
+              emit-value
+              map-options
+              @update:model-value="onFilterChange"
+            />
             <APISelect
               v-else-if="filter.type === 'api-select'"
               v-model="tableFilters[filter.field]"

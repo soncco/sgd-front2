@@ -101,6 +101,16 @@ const table = computed(() => ({
       color: 'primary',
       action: (row) => {
         console.log('Ver documento', row)
+        router.push(`/documento/${row.documento_id}`)
+      },
+    },
+    {
+      label: 'Responder',
+      icon: 'reply',
+      color: 'secondary',
+      action: (row) => {
+        console.log('Responder documento', row)
+        router.push(`/documento/responder/${row.documento_id}`)
       },
     },
   ],
