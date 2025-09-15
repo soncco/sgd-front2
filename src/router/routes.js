@@ -104,6 +104,17 @@ const routes = [
   },
 
   {
+    path: '/seguimiento-publico',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [
+      {
+        path: '',
+        component: () => import('src/pages/tramite/SeguimientoPublico.vue'),
+      },
+    ],
+  },
+
+  {
     path: '/login',
     component: () => import('layouts/AuthLayout.vue'),
     children: [{ path: '', component: () => import('pages/LoginPage.vue') }],
