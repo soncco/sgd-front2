@@ -84,6 +84,10 @@ const routes = [
         component: () => import('src/pages/tramite/SeguimientoExpedientePage.vue'),
         props: true,
       },
+      {
+        path: 'expedientes',
+        component: () => import('src/pages/tramite/ExpedientesPage.vue'),
+      },
     ],
     meta: { requiresAuth: true },
   },
@@ -94,11 +98,11 @@ const routes = [
     children: [
       {
         path: '',
-        component: () => import('src/pages/tramite/MesaDePartes.vue')
-      }
-    ]
+        component: () => import('src/pages/tramite/MesaDePartes.vue'),
+      },
+    ],
   },
-  
+
   {
     path: '/login',
     component: () => import('layouts/AuthLayout.vue'),
