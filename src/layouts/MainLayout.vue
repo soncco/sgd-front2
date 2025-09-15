@@ -124,6 +124,7 @@ const menu = ref([
       { label: 'Crear nuevo documento', route: '/tramite/nuevo' },
       { label: 'Bandeja de entrada', route: '/bandeja/entrada' },
       { label: 'Bandeja de salida', route: '/bandeja/salida' },
+      { label: 'Expedientes', route: '/expedientes' },
     ],
   },
   {
