@@ -153,7 +153,6 @@ const personaStore = usePersonaStore()
 const titulo = reactive({
   title: 'Responder Documento',
   icon: 'reply',
-  buttons: [{ label: 'Ver todos los Documentos', icon: 'list', route: '/documentos' }],
 })
 
 const info = reactive({
