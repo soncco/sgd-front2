@@ -114,13 +114,13 @@ const routes = [
     ],
   },
   {
-    path: '/expediente/:numero/seguimiento',
+    path: '/expediente/:numero/seguimiento-publico',
     component: () => import('layouts/MainLayout.vue'),
     children: [
       {
         path: '',
         component: () => import('src/pages/tramite/SeguimientoExpedientePage.vue'),
-        props: true,
+        meta: { requiresAuth: false },
       },
     ],
   },
