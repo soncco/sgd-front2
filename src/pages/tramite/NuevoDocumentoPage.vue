@@ -194,7 +194,7 @@
 
 <script setup>
 import { reactive, onMounted, watch, ref } from 'vue'
-import { Notify, Loading} from 'quasar'
+import { Notify, Loading } from 'quasar'
 import { useRouter } from 'vue-router'
 import { api } from 'src/boot/axios'
 import { usePersonaStore } from 'src/stores/persona'
@@ -209,7 +209,6 @@ const personaStore = usePersonaStore()
 const titulo = reactive({
   title: 'Nuevo Documento',
   icon: 'description',
-  buttons: [{ label: 'Ver todos los Documentos', icon: 'list', route: '/documentos' }],
 })
 
 const info = reactive({
@@ -342,12 +341,12 @@ watch(
 const submitForm = async () => {
   Object.keys(errores).forEach((k) => (errores[k] = false))
   Object.keys(errores_texto).forEach((k) => (errores_texto[k] = ''))
-  
+
   try {
     Loading.show({
-    message: 'Guardando documento...',
-    spinnerColor: 'white'
-  })
+      message: 'Guardando documento...',
+      spinnerColor: 'white',
+    })
 
     const formData = new FormData()
     formData.append('numero', info.expediente)
@@ -406,8 +405,7 @@ const submitForm = async () => {
       type: 'negative',
       message: 'Revisa los errores en el formulario',
     })
-  }
-  finally {
+  } finally {
     Loading.hide()
   }
 }
