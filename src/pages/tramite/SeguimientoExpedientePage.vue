@@ -54,7 +54,7 @@ import { api } from 'boot/axios'
 
 const route = useRoute()
 const router = useRouter()
-const numero = computed(() => route.params.numero)
+const id = computed(() => route.params.id)
 
 const loading = ref(false)
 const expediente = ref(null)
@@ -77,7 +77,7 @@ function iconFor(kind) {
 async function fetchData() {
   loading.value = true
   try {
-    const { data } = await api.get(`/api/tramite/expedientes/${numero.value}/seguimiento/`)
+    const { data } = await api.get(`/api/tramite/expedientes/${id.value}/seguimiento/`)
     expediente.value = data.expediente
     events.value = (data.events || []).slice().sort((a, b) => a.ts.localeCompare(b.ts))
   } finally {
