@@ -153,7 +153,7 @@ const columns = [
 ]
 
 function verSeguimiento(row) {
-  router.push(`/expediente/${row.numero}/seguimiento`)
+  router.push(`/expediente/${row.numero}/seguimiento-publico`)
 }
 
 async function buscar() {
