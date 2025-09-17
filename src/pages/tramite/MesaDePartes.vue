@@ -34,191 +34,241 @@
     </div>
 
     <div class="q-pa-md">
-      <q-stepper v-model="step" flat animated header-nav color="primary">
+      <div style="max-width: 1000px; margin: 0 auto;">
 
-        <!-- Paso 1: Datos del Remitente -->
-        <q-step :name="1" title="Datos del Remitente" icon="person" :done="step > 1">
-          <q-form @submit.prevent="nextStep">
-            <q-input outlined v-model="form.remitente_nombres" label="Nombres" required />
-            <q-input outlined v-model="form.remitente_apellidos" label="Apellidos" required />
-            <q-input outlined v-model="form.remitente_documento" label="Documento de identidad" required />
-            <q-input outlined v-model="form.remitente_email" label="Correo electrónico" type="email" required />
-            <q-input
-              outlined
-              v-model="form.remitente_celular"
-              label="Celular"
-              type="tel"
-              :rules="[val => /^\d{9}$/.test(val) || 'Debe tener 9 dígitos']"
-              required
-            />
+        <q-stepper v-model="step" flat animated header-nav color="primary">
 
-            <div class="q-mt-md">
-              <q-btn label="Siguiente" type="submit" color="primary" />
-            </div>
-          </q-form>
-        </q-step>
+          <!-- Paso 1: Datos del Remitente -->
+          <q-step :name="1" title="Datos del Remitente" icon="person" :done="step > 1">
+            <q-form @submit.prevent="nextStep" class="q-gutter-md">
 
-        <!-- Paso 2: Datos del Documento -->
-        <q-step :name="2" title="Datos del Documento" icon="description" :done="step > 2">
-          <q-form @submit.prevent="nextStep">
-            <!-- q-select: emit-value hace que v-model guarde SOLO el id (valor numérico). -->
-            <q-select
-              v-model="form.tipo_documento"
-              :options="tiposDocumentoOptions"
-              option-value="id"
-              option-label="nombre"
-              emit-value
-              map-options
-              outlined
-              label="Tipo de documento"
-              dense
-              required
-            />
-            <q-input outlined v-model="form.asunto" label="Asunto" type="textarea" autogrow required />
+              <q-select
+                v-model="form.remitente_tipo_persona"
+                :options="tiposPersonaOptions"
+                option-value="value"
+                option-label="label"
+                emit-value
+                map-options
+                outlined
+                label="Tipo de Persona"
+                dense
+                required
+                class="q-mb-md"
+              />
 
-            <div class="q-mt-md flex justify-between">
-              <q-btn flat label="Atrás" @click="prevStep" />
-              <q-btn label="Siguiente" type="submit" color="primary" />
-            </div>
-          </q-form>
-        </q-step>
+              <q-select
+                v-model="form.remitente_tipo_doc"
+                :options="tiposDocOptions"
+                option-value="value"
+                option-label="label"
+                emit-value
+                map-options
+                outlined
+                label="Tipo de Documento"
+                dense
+                required
+                class="q-mb-md"
+              />
+              <q-input outlined v-model="form.remitente_nombres" label="Nombres" required />
+              <q-input outlined v-model="form.remitente_apellidos" label="Apellidos" required />
+              <q-input outlined v-model="form.remitente_documento" label="Documento de identidad" required />
+              <q-input outlined v-model="form.remitente_email" label="Correo electrónico" type="email" required />
+              <q-input
+                outlined
+                v-model="form.remitente_celular"
+                label="Celular"
+                type="tel"
+                :rules="[val => /^\d{9}$/.test(val) || 'Debe tener 9 dígitos']"
+                required
+                class="q-mb-md"
+              />
 
-        <!-- Paso 3: Adjuntar archivos -->
-        <q-step :name="3" title="Archivos" icon="attach_file" :done="step > 3">
-          <q-form @submit.prevent="nextStep">
-            <!-- File uploader para múltiples archivos -->
-            <q-file
-              v-model="selectedFiles"
-              label="Seleccionar archivos"
-              multiple
-              outlined
-              use-chips
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.xlsx,.xls"
-              counter
-              max-files="10"
-              max-file-size="10485760"
-              @rejected="onRejectedFiles"
-              @update:model-value="onFilesSelected"
-            >
-              <template v-slot:prepend>
-                <q-icon name="attach_file" />
-              </template>
-            </q-file>
+              <div class="q-mt-md">
+                <q-btn label="Siguiente" type="submit" color="primary" />
+              </div>
+            </q-form>
+          </q-step>
 
-            <!-- Lista de archivos agregados -->
-            <div v-if="form.archivos.length > 0" class="q-mt-lg">
-              <div class="text-subtitle1 q-mb-md">Archivos agregados:</div>
-              <q-card v-for="(archivo, index) in form.archivos" :key="archivo.id" class="q-mb-sm">
-                <q-card-section class="q-pa-sm">
-                  <div class="row items-center">
-                    <q-icon name="description" class="q-mr-sm" />
-                    <div class="col">
-                      <div class="text-body2">{{ archivo.file.name }}</div>
-                      <div class="text-caption text-grey-6">
-                        {{ formatFileSize(archivo.file.size) }} - {{ archivo.file.type || 'Tipo desconocido' }}
+          <!-- Paso 2: Datos del Documento -->
+          <q-step :name="2" title="Datos del Documento" icon="description" :done="step > 2" :disable="maxStepReached < 2">
+            <q-form @submit.prevent="nextStep" class="q-gutter-md">
+              <!-- q-select: emit-value hace que v-model guarde SOLO el id (valor numérico). -->
+              <q-select
+                v-model="form.tipo_documento"
+                :options="tiposDocumentoOptions"
+                option-value="id"
+                option-label="nombre"
+                emit-value
+                map-options
+                outlined
+                label="Tipo de documento"
+                dense
+                required
+              />
+              <q-input outlined v-model="form.asunto" label="Asunto" type="textarea" autogrow required />
+
+              <div class="q-mt-md flex justify-between">
+                <q-btn flat label="Atrás" @click="prevStep" />
+                <q-btn label="Siguiente" type="submit" color="primary" />
+              </div>
+            </q-form>
+          </q-step>
+
+          <!-- Paso 3: Adjuntar archivos -->
+          <q-step :name="3" title="Archivos" icon="attach_file" :done="step > 3" :disable="maxStepReached < 3">
+            <q-form @submit.prevent="nextStep">
+              <!-- File uploader para múltiples archivos -->
+              <q-file
+                v-model="selectedFiles"
+                label="Seleccionar archivos"
+                multiple
+                outlined
+                use-chips
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.xlsx,.xls"
+                counter
+                max-files="10"
+                max-file-size="10485760"
+                @rejected="onRejectedFiles"
+                @update:model-value="onFilesSelected"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="attach_file" />
+                </template>
+              </q-file>
+
+              <!-- Lista de archivos agregados -->
+              <div v-if="form.archivos.length > 0" class="q-mt-lg">
+                <div class="text-subtitle1 q-mb-md">Archivos agregados:</div>
+                <q-card v-for="(archivo, index) in form.archivos" :key="archivo.id" class="q-mb-sm">
+                  <q-card-section class="q-pa-sm">
+                    <div class="row items-center">
+                      <q-icon name="description" class="q-mr-sm" />
+                      <div class="col">
+                        <div class="text-body2">{{ archivo.file.name }}</div>
+                        <div class="text-caption text-grey-6">
+                          {{ formatFileSize(archivo.file.size) }} - {{ archivo.file.type || 'Tipo desconocido' }}
+                        </div>
                       </div>
+                      <q-btn 
+                        flat 
+                        round 
+                        color="negative" 
+                        icon="delete" 
+                        size="sm"
+                        @click="removeFile(index)"
+                      />
                     </div>
-                    <q-btn 
-                      flat 
-                      round 
-                      color="negative" 
-                      icon="delete" 
-                      size="sm"
-                      @click="removeFile(index)"
+                    <q-input 
+                      v-model="archivo.descripcion" 
+                      label="Descripción del archivo (opcional)" 
+                      dense
+                      outlined
+                      class="q-mt-sm"
                     />
+                  </q-card-section>
+                </q-card>
+              </div>
+
+              <!-- Información sobre límites -->
+              <div class="q-mt-md text-caption text-grey-6">
+                <div>• Máximo 10 archivos</div>
+                <div>• Tamaño máximo por archivo: 10 MB</div>
+                <div>• Formatos permitidos: PDF, JPG, PNG, DOC, DOCX, TXT, XLS, XLSX</div>
+              </div>
+
+              <div class="q-mt-md flex justify-between">
+                <q-btn flat label="Atrás" @click="prevStep" />
+                <q-btn label="Siguiente" type="submit" color="primary" />
+              </div>
+            </q-form>
+          </q-step>
+
+          <!-- Paso 4: Confirmación -->
+          <q-step :name="4" title="Confirmación" icon="check_circle" :disable="maxStepReached < 4">
+            <div class="q-gutter-md">
+              <q-card flat bordered>
+                <q-card-section>
+                  <div class="text-h6">Datos del Remitente</div>
+                  <p><b>Tipo de Persona:</b> {{ tipoPersonaLabel }}</p>
+                  <p><b>Tipo de Documento:</b> {{ tipoDocLabel }}</p>
+                  <p><b>Nombres:</b> {{ form.remitente_nombres }}</p>
+                  <p><b>Apellidos:</b> {{ form.remitente_apellidos }}</p>
+                  <p><b>DNI:</b> {{ form.remitente_documento }}</p>
+                  <p><b>Correo:</b> {{ form.remitente_email }}</p>
+                  <p><b>Celular:</b> {{ form.remitente_celular }}</p>
+                </q-card-section>
+              </q-card>
+
+              <q-card flat bordered>
+                <q-card-section>
+                  <div class="text-h6">Datos del Documento</div>
+                  <!-- mostramos el nombre usando computed tipoDocumentoNombre -->
+                  <p><b>Tipo:</b> {{ tipoDocumentoNombre }}</p>
+                  <p><b>Asunto:</b> {{ form.asunto }}</p>
+                </q-card-section>
+              </q-card>
+
+              <q-card flat bordered>
+                <q-card-section>
+                  <div class="text-h6">Archivos ({{ form.archivos.length }})</div>
+                  <div v-if="form.archivos.length > 0">
+                    <div v-for="archivo in form.archivos" :key="archivo.id" class="q-mb-sm">
+                      <q-card flat bordered class="bg-grey-1">
+                        <q-card-section class="q-pa-sm">
+                          <div class="row items-center">
+                            <q-icon name="description" class="q-mr-sm text-primary" />
+                            <div class="col">
+                              <div class="text-body2">{{ archivo.file.name }}</div>
+                              <div class="text-caption text-grey-6">
+                              </div>
+                              <div v-if="archivo.descripcion" class="text-caption q-mt-xs">
+                                <strong>Descripción:</strong> {{ archivo.descripcion }}
+                              </div>
+                            </div>
+                          </div>
+                        </q-card-section>
+                      </q-card>
+                    </div>
                   </div>
-                  <q-input 
-                    v-model="archivo.descripcion" 
-                    label="Descripción del archivo (opcional)" 
-                    dense
-                    outlined
-                    class="q-mt-sm"
-                  />
+                  <div v-else class="text-grey-6">
+                    <q-icon name="info" class="q-mr-sm" />
+                    No se adjuntaron archivos
+                  </div>
                 </q-card-section>
               </q-card>
             </div>
 
-            <!-- Información sobre límites -->
-            <div class="q-mt-md text-caption text-grey-6">
-              <div>• Máximo 10 archivos</div>
-              <div>• Tamaño máximo por archivo: 10 MB</div>
-              <div>• Formatos permitidos: PDF, JPG, PNG, DOC, DOCX, TXT, XLS, XLSX</div>
-            </div>
-
             <div class="q-mt-md flex justify-between">
               <q-btn flat label="Atrás" @click="prevStep" />
-              <q-btn label="Siguiente" type="submit" color="primary" />
+              <q-btn 
+                label="Confirmar y Enviar" 
+                color="positive" 
+                @click="submitForm"
+                :loading="submitting"
+                :disable="submitting"
+              />
             </div>
-          </q-form>
-        </q-step>
+          </q-step>
 
-        <!-- Paso 4: Confirmación -->
-        <q-step :name="4" title="Confirmación" icon="check_circle">
-          <div class="q-gutter-md">
-            <q-card flat bordered>
-              <q-card-section>
-                <div class="text-h6">Datos del Remitente</div>
-                <p><b>Nombres:</b> {{ form.remitente_nombres }}</p>
-                <p><b>Apellidos:</b> {{ form.remitente_apellidos }}</p>
-                <p><b>DNI:</b> {{ form.remitente_documento }}</p>
-                <p><b>Correo:</b> {{ form.remitente_email }}</p>
-                <p><b>Celular:</b> {{ form.remitente_celular }}</p>
-              </q-card-section>
-            </q-card>
-
-            <q-card flat bordered>
-              <q-card-section>
-                <div class="text-h6">Datos del Documento</div>
-                <!-- mostramos el nombre usando computed tipoDocumentoNombre -->
-                <p><b>Tipo:</b> {{ tipoDocumentoNombre }}</p>
-                <p><b>Asunto:</b> {{ form.asunto }}</p>
-              </q-card-section>
-            </q-card>
-
-            <q-card flat bordered>
-              <q-card-section>
-                <div class="text-h6">Archivos ({{ form.archivos.length }})</div>
-                <div v-if="form.archivos.length > 0">
-                  <div v-for="archivo in form.archivos" :key="archivo.id" class="q-mb-sm">
-                    <q-card flat bordered class="bg-grey-1">
-                      <q-card-section class="q-pa-sm">
-                        <div class="row items-center">
-                          <q-icon name="description" class="q-mr-sm text-primary" />
-                          <div class="col">
-                            <div class="text-body2">{{ archivo.file.name }}</div>
-                            <div class="text-caption text-grey-6">
-                            </div>
-                            <div v-if="archivo.descripcion" class="text-caption q-mt-xs">
-                              <strong>Descripción:</strong> {{ archivo.descripcion }}
-                            </div>
-                          </div>
-                        </div>
-                      </q-card-section>
-                    </q-card>
-                  </div>
-                </div>
-                <div v-else class="text-grey-6">
-                  <q-icon name="info" class="q-mr-sm" />
-                  No se adjuntaron archivos
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-
-          <div class="q-mt-md flex justify-between">
-            <q-btn flat label="Atrás" @click="prevStep" />
-            <q-btn 
-              label="Confirmar y Enviar" 
-              color="positive" 
-              @click="submitForm"
-              :loading="submitting"
-              :disable="submitting"
-            />
-          </div>
-        </q-step>
-
-      </q-stepper>
+        </q-stepper>
+       </div>
     </div>
+    <q-dialog v-model="showDialog" persistent>
+      <q-card class="q-pa-lg text-center">
+        <q-card-section>
+          <div class="text-h5 text-bold text-positive">¡Felicidades!</div>
+          <div class="text-subtitle1 q-mt-md">
+            Su número de expediente es:
+          </div>
+          <div class="text-h4 text-primary q-mt-sm">{{ expedienteGenerado }}</div>
+        </q-card-section>
+
+        <q-card-actions align="center">
+          <q-btn label="Aceptar" color="primary" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
@@ -233,6 +283,22 @@ const fechaActual = ref(new Date().toISOString().split('T')[0])
 const numeroExpediente = ref('Cargando...')
 const submitting = ref(false)
 const selectedFiles = ref([])
+const showDialog = ref(false)
+const expedienteGenerado = ref('')
+
+const tiposPersonaOptions = ref([
+  { value: '1', label: 'Persona natural' },
+  { value: '2', label: 'Persona jurídica' }
+])
+
+const tiposDocOptions = ref([
+  { value: '1', label: 'DNI' },
+  { value: '2', label: 'RUC' },
+  { value: '3', label: 'Carnet de extranjería' },
+  { value: '4', label: 'Pasaporte' },
+  { value: '5', label: 'Sin documento (Código temporal)' },
+  { value: '6', label: 'Permiso temporal del permanencia' }
+])
 
 // tipos
 const tiposDocumento = ref([])
@@ -273,9 +339,11 @@ const form = reactive({
   remitente_documento: '',
   remitente_email: '',
   remitente_celular: '',
-  tipo_documento: null, // aquí guardamos el ID (number)
+  remitente_tipo_persona: '1',  // default Persona natural
+  remitente_tipo_doc: '1',        // default DNI
+  tipo_documento: null,           // aquí guardamos el ID 
   asunto: '',
-  archivos: [] // Array de objetos 
+  archivos: []  
 })
 
 // computed para mostrar el nombre del tipo seleccionado
@@ -284,6 +352,17 @@ const tipoDocumentoNombre = computed(() => {
   const t = tiposDocumento.value.find(x => x.id === form.tipo_documento)
   return t ? t.nombre : 'No encontrado'
 })
+
+const tipoPersonaLabel = computed(() => {
+  const tipo = tiposPersonaOptions.value.find(x => x.value === form.remitente_tipo_persona)
+  return tipo ? tipo.label : 'No seleccionado'
+})
+
+const tipoDocLabel = computed(() => {
+  const tipo = tiposDocOptions.value.find(x => x.value === form.remitente_tipo_doc)
+  return tipo ? tipo.label : 'No seleccionado'
+})
+
 
 // Función para formatear el tamaño del archivo
 function formatFileSize(bytes) {
@@ -385,19 +464,40 @@ function removeFile(index) {
   }
 }
 
+const maxStepReached = ref(1)
+
 function nextStep() {
-  if (step.value === 2) {
-    if (!form.tipo_documento || !form.asunto || !form.asunto.trim()) {
-      Notify.create({ type: 'negative', message: 'Por favor completa tipo de documento y asunto' })
+  // Validaciones
+  if (step.value === 1) {
+    if (!form.remitente_nombres.trim() || !form.remitente_apellidos.trim() ||
+        !form.remitente_documento.trim() || !form.remitente_email.trim() ||
+        !form.remitente_celular.trim()) {
+      Notify.create({ type: 'negative', message: 'Completa todos los campos del remitente' })
+      return
+    }
+    if (!/^\d{9}$/.test(form.remitente_celular)) {
+      Notify.create({ type: 'negative', message: 'El celular debe tener 9 dígitos' })
       return
     }
   }
+
+  if (step.value === 2) {
+    if (!form.tipo_documento) {
+      Notify.create({ type: 'negative', message: 'Selecciona un tipo de documento' })
+      return
+    }
+    if (!form.asunto.trim()) {
+      Notify.create({ type: 'negative', message: 'El asunto no puede estar vacío' })
+      return
+    }
+  }
+
   step.value++
+  if (step.value > maxStepReached.value) {
+    maxStepReached.value = step.value
+  }
 }
 
-function prevStep() {
-  step.value--
-}
 
 async function submitForm() {
   if (submitting.value) return
@@ -424,6 +524,9 @@ async function submitForm() {
     fd.append('remitente_documento', form.remitente_documento.trim())
     fd.append('remitente_email', form.remitente_email.trim())
     fd.append('remitente_celular', form.remitente_celular.trim())
+    fd.append('remitente_tipo_persona', form.remitente_tipo_persona) 
+    fd.append('remitente_tipo_doc', form.remitente_tipo_doc)        
+
 
     // Documento: **clave exacta que espera el backend** -> 'documento[tipo]'
     fd.append('documento[tipo]', String(form.tipo_documento))
@@ -446,7 +549,7 @@ async function submitForm() {
     }
 
     const response = await api.post('/api/tramite/mesa-partes/', fd, {
-      timeout: 10000, // 10 segundos para archivos grandes
+      timeout: 20000, // 20 segundos para archivos grandes
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total) {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
@@ -458,13 +561,18 @@ async function submitForm() {
     console.log('Respuesta:', response.data)
     Notify.create({ 
       type: 'positive', 
-      message: `Documento registrado correctamente. ${form.archivos.length > 0 ? `Se subieron ${form.archivos.length} archivo(s).` : ''}`,
-      timeout: 5000
+      message: `Documento registrado correctamente.`,
+      timeout: 3000
     })
-    
+
+    // mostrar el diálogo con el número de expediente actual
+    expedienteGenerado.value = numeroExpediente.value
+    showDialog.value = true
+
     resetForm()
     step.value = 1
     await fetchNumeroExpediente()
+
     
   } catch (error) {
     console.error('Error submit:', error)
@@ -498,7 +606,7 @@ async function submitForm() {
     Notify.create({ 
       type: 'negative', 
       message: errorMessage, 
-      timeout: 8000,
+      timeout: 30000,
       actions: [{
         label: 'Cerrar',
         color: 'white'
@@ -516,6 +624,8 @@ function resetForm() {
     remitente_documento: '',
     remitente_email: '',
     remitente_celular: '',
+    remitente_tipo_persona: '1', 
+    remitente_tipo_doc: '1',     
     tipo_documento: null,
     asunto: '',
     archivos: []
