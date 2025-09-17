@@ -107,6 +107,7 @@
               dense
               :from-label="filter.fromLabel || 'Desde'"
               :to-label="filter.toLabel || 'Hasta'"
+              :datetime="true"
               @update:model-value="onFilterChange"
             />
           </div>

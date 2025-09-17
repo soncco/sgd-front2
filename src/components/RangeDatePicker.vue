@@ -57,10 +57,11 @@ const model = defineModel({
   default: () => ({ from: null, to: null }),
 })
 
-defineProps({
+const props = defineProps({
   label: { type: String, default: 'Rango de fechas' },
   fromLabel: { type: String, default: 'Desde' },
   toLabel: { type: String, default: 'Hasta' },
+  datetime: { type: Boolean, default: false },
 })
 
 const fromDisplay = ref('')
@@ -84,20 +85,33 @@ const myLocale = {
 // Funciones helper
 const formatToDisplay = (iso) => {
   if (!iso) return ''
-  const [y, m, d] = iso.split('-')
+  // Extraer solo la fecha de un string ISO que puede incluir hora
+  const dateOnly = iso.includes('T') ? iso.split('T')[0] : iso
+  const [y, m, d] = dateOnly.split('-')
   return `${d}/${m}/${y}`
 }
 
-const formatToISO = (dateStr) => {
+const formatToISOWithTime = (dateStr, isEndDate = false) => {
+  if (!dateStr) return null
+
   const [y, m, d] = dateStr.split('/')
-  return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+  const date = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+
+  if (props.datetime) {
+    // Crear fecha con hora, sin zona horaria (el backend la maneja)
+    const time = isEndDate ? '23:59:59' : '00:00:00'
+    return `${date}T${time}`
+  }
+
+  return date
 }
 
 const parseDisplayDate = (str) => {
   if (!str || str.length < 10) return null
   const [dd, mm, yyyy] = str.split('/')
   if (!dd || !mm || !yyyy || yyyy.length !== 4) return null
-  return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`
+  const dateStr = `${yyyy}/${mm.padStart(2, '0')}/${dd.padStart(2, '0')}`
+  return dateStr
 }
 
 // Watch para sincronizar modelo con displays
@@ -106,31 +120,42 @@ watch(
   (newVal) => {
     fromDisplay.value = newVal?.from ? formatToDisplay(newVal.from) : ''
     toDisplay.value = newVal?.to ? formatToDisplay(newVal.to) : ''
-    fromCalendar.value = newVal?.from ? newVal.from.replaceAll('-', '/') : ''
-    toCalendar.value = newVal?.to ? newVal.to.replaceAll('-', '/') : ''
+
+    // Para el calendario, extraer solo la fecha sin hora
+    const fromDate = newVal?.from
+      ? newVal.from.includes('T')
+        ? newVal.from.split('T')[0]
+        : newVal.from
+      : ''
+    const toDate = newVal?.to ? (newVal.to.includes('T') ? newVal.to.split('T')[0] : newVal.to) : ''
+
+    fromCalendar.value = fromDate ? fromDate.replaceAll('-', '/') : ''
+    toCalendar.value = toDate ? toDate.replaceAll('-', '/') : ''
   },
   { immediate: true, deep: true },
 )
 
 // Funciones para manejar cambios desde el calendario
 function onFromSelected(val) {
-  const isoDate = val ? formatToISO(val) : null
+  const isoDate = val ? formatToISOWithTime(val) : null
   model.value = { ...model.value, from: isoDate }
 }
 
 function onToSelected(val) {
-  const isoDate = val ? formatToISO(val) : null
+  const isoDate = val ? formatToISOWithTime(val, true) : null
   model.value = { ...model.value, to: isoDate }
 }
 
 // Funciones para manejar cambios desde el input manual
 function onFromChange(val) {
-  const isoDate = parseDisplayDate(val)
+  const dateStr = parseDisplayDate(val)
+  const isoDate = dateStr ? formatToISOWithTime(dateStr) : null
   model.value = { ...model.value, from: isoDate }
 }
 
 function onToChange(val) {
-  const isoDate = parseDisplayDate(val)
+  const dateStr = parseDisplayDate(val)
+  const isoDate = dateStr ? formatToISOWithTime(dateStr, true) : null
   model.value = { ...model.value, to: isoDate }
 }
 </script>
