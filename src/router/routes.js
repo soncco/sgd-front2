@@ -80,7 +80,7 @@ const routes = [
         props: true,
       },
       {
-        path: 'expediente/:numero/seguimiento',
+        path: 'expediente/:id/seguimiento',
         component: () => import('src/pages/tramite/SeguimientoExpedientePage.vue'),
         props: true,
       },
