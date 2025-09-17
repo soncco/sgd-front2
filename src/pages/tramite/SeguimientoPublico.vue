@@ -3,7 +3,6 @@
     <PageTitle title="Seguimiento de Expediente" icon="search" />
 
     <div class="q-pa-md">
-      <!-- Formulario de búsqueda -->
       <q-form @submit.prevent="buscar" class="q-gutter-md">
         <q-option-group
           v-model="modoBusqueda"
@@ -26,21 +25,21 @@
 
         <div v-else class="row q-col-gutter-md">
           <div class="col-6">
-            <APISelect
-              v-model="form.tipo_documento"
+            <q-select
+              v-model="form.tipo_documento_identidad"
+              :options="tiposDocOptions"
               label="Tipo de documento"
-              url="/api/base/tipos-documento-publicos/"
-              field="nombre"
-              option-value="id"
-              option-label="nombre"
+              outlined
               dense
+              emit-value
+              map-options
               clearable
             />
           </div>
           <div class="col-6">
             <q-input
               outlined
-              v-model="form.numero_documento"
+              v-model="form.numero_documento_identidad"
               label="Número de documento"
               maxlength="50"
               clearable
@@ -58,48 +57,29 @@
         />
       </q-form>
 
-      <!-- Resultado básico -->
-      <div v-if="expediente" class="q-mt-xl">
-        <q-card flat bordered class="q-pa-md">
-          <div class="text-h6 q-mb-md">Resultado del Seguimiento</div>
-          <q-separator />
-
-          <div class="q-mt-md">
-            <div><b>Expediente:</b> {{ expediente.numero }}</div>
-            <div><b>Fecha:</b> {{ formatDate(expediente.fecha) }}</div>
-            <div><b>Estado:</b> {{ expediente.estado_display }}</div>
-            <div>
-              <b>Último estado:</b> {{ expediente.ultimo_estado?.estado }} ({{
-                formatDate(expediente.ultimo_estado?.fecha)
-              }})
-            </div>
-          </div>
-        </q-card>
-      </div>
-
-      <!-- Timeline -->
-      <div v-if="events.length" class="q-mt-lg">
-        <q-card flat bordered>
-          <q-card-section>
-            <q-timeline color="primary">
-              <q-timeline-entry
-                v-for="(ev, idx) in events"
-                :key="idx"
-                :title="ev.label"
-                :subtitle="formatDate(ev.ts)"
-                :icon="iconFor(ev.kind)"
-              >
-                <div class="text-caption">
-                  <div v-if="ev.doc_numero" class="row items-center no-wrap">
-                    <div><b>Documento:</b> {{ ev.doc_tipo }} {{ ev.doc_numero }}</div>
-                  </div>
-                  <div v-if="ev.doc_asunto"><b>Asunto:</b> {{ ev.doc_asunto }}</div>
-                  <div v-if="ev.estado"><b>Estado:</b> {{ ev.estado }}</div>
-                </div>
-              </q-timeline-entry>
-            </q-timeline>
-          </q-card-section>
-        </q-card>
+      <!-- Resultados en tabla -->
+      <div v-if="expedientes.length" class="q-mt-xl">
+        <q-table
+          :rows="expedientes"
+          :columns="columns"
+          row-key="numero"
+          flat
+          bordered
+          :loading="loading"
+          no-data-label="No se encontraron expedientes"
+        >
+          <template v-slot:body-cell-acciones="props">
+            <q-td :props="props" class="text-center">
+              <q-btn
+                size="sm"
+                color="primary"
+                icon="visibility"
+                label="Ver"
+                @click="verSeguimiento(props.row)"
+              />
+            </q-td>
+          </template>
+        </q-table>
       </div>
     </div>
   </q-page>
@@ -109,40 +89,77 @@
 import { reactive, ref } from 'vue'
 import { Notify } from 'quasar'
 import { api } from 'src/boot/axios'
+import router from 'src/router'
 import PageTitle from 'src/components/PageTitle.vue'
-import APISelect from 'src/components/APISelect.vue'
+
+// opciones fijas de tipo de documento
+const tiposDocOptions = ref([
+  { value: '1', label: 'DNI' },
+  { value: '2', label: 'RUC' },
+  { value: '3', label: 'Carnet de extranjería' },
+  { value: '4', label: 'Pasaporte' },
+  { value: '5', label: 'Sin documento (Código temporal)' },
+  { value: '6', label: 'Permiso temporal del permanencia' },
+])
 
 const modoBusqueda = ref('expediente')
 const form = reactive({
   expediente: '',
-  tipo_documento: null,
-  numero_documento: '',
+  tipo_documento_identidad: null,
+  numero_documento_identidad: '',
 })
 
-const expediente = ref(null)
-const events = ref([])
+const expedientes = ref([])
 const loading = ref(false)
 
 function formatDate(iso) {
   if (!iso) return ''
   try {
-    return new Date(iso).toLocaleString()
+    return new Date(iso).toLocaleDateString()
   } catch {
     return iso
   }
 }
-function iconFor(kind) {
-  if (kind === 'movimiento') return 'swap_horiz'
-  if (kind === 'destino') return 'send'
-  if (kind === 'estado') return 'flag'
-  return 'event'
+
+const columns = [
+  {
+    name: 'numero',
+    label: 'Número',
+    align: 'left',
+    field: 'numero',
+    sortable: true,
+  },
+  {
+    name: 'fecha',
+    label: 'Fecha de creación',
+    align: 'left',
+    field: (row) => row.fecha || row.events?.[0]?.ts,
+    format: (val) => formatDate(val),
+    sortable: true,
+  },
+  {
+    name: 'estado',
+    label: 'Estado',
+    align: 'left',
+    field: (row) =>
+      row.estado_display || row.events?.find((ev) => ev.kind === 'estado')?.estado_nombre,
+    sortable: true,
+  },
+  {
+    name: 'acciones',
+    label: 'Acciones',
+    align: 'center',
+  },
+]
+
+function verSeguimiento(row) {
+  router.push(`/expediente/${row.numero}/seguimiento`)
 }
 
 async function buscar() {
   try {
     loading.value = true
-    expediente.value = null
-    events.value = []
+    expedientes.value = []
 
     let params = {}
     if (modoBusqueda.value === 'expediente') {
@@ -151,44 +168,19 @@ async function buscar() {
       }
       params = { numero_expediente: form.expediente }
     } else {
-      if (!form.tipo_documento || !form.numero_documento) {
+      if (!form.tipo_documento_identidad || !form.numero_documento_identidad) {
         return Notify.create({ type: 'warning', message: 'Ingrese tipo y número de documento' })
       }
       params = {
-        tipo_documento: form.tipo_documento.id || form.tipo_documento,
-        numero_documento: form.numero_documento,
+        tipo_documento_identidad: form.tipo_documento_identidad,
+        numero_documento_identidad: form.numero_documento_identidad,
       }
     }
 
-    // 👇 Llamada al endpoint de búsqueda pública
     const res = await api.get('/api/tramite/seguimiento/publico/', { params })
 
     if (res.data.resultados_encontrados > 0) {
-      expediente.value = res.data.expedientes[0]
-
-      // Construir eventos básicos desde JSON
-      events.value = [
-        {
-          label: 'Expediente creado',
-          ts: expediente.value.fecha,
-          kind: 'estado',
-          estado: expediente.value.estado_display,
-        },
-        ...(expediente.value.documentos || []).map((doc) => ({
-          label: 'Documento asociado',
-          ts: doc.fecha,
-          kind: 'documento',
-          doc_numero: doc.numero,
-          doc_tipo: doc.tipo,
-          doc_asunto: doc.asunto,
-        })),
-        {
-          label: 'Última actualización',
-          ts: expediente.value.ultimo_estado?.fecha,
-          kind: 'estado',
-          estado: expediente.value.ultimo_estado?.estado,
-        },
-      ]
+      expedientes.value = res.data.expedientes
     } else {
       Notify.create({ type: 'negative', message: 'No se encontró información del expediente' })
     }
