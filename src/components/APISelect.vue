@@ -19,6 +19,7 @@
       emit-value
       map-options
       :return-object="returnObject"
+      :readonly="readonly"
     >
       <!-- Slot personalizado para cuando no hay opciones -->
       <template v-slot:no-option>
@@ -89,6 +90,29 @@ const props = defineProps({
     type: Array,
     required: false,
   },
+  /**
+   * Endpoint para obtener un elemento específico por ID
+   * Usado para hacer prefetch del valor inicial si no está en las opciones
+   * Si no se proporciona, se usará el URL base + '/ID/'
+   */
+  prefetchEndpoint: {
+    type: String,
+    default: '',
+  },
+  /**
+   * Hacer prefetch automático del valor inicial si no está en las opciones
+   */
+  autoPrefetch: {
+    type: Boolean,
+    default: true,
+  },
+  /**
+   * Nombre del parámetro para búsqueda en la URL
+   */
+  searchParam: {
+    type: String,
+    default: 'search',
+  },
   label: {
     type: String,
     default: 'Select',
@@ -116,6 +140,10 @@ const props = defineProps({
     default: false,
   },
   returnObject: {
+    type: Boolean,
+    default: false,
+  },
+  readonly: {
     type: Boolean,
     default: false,
   },
@@ -159,10 +187,16 @@ function buildOption(item) {
 /**
  * fetchData: carga datos de la API con un término de búsqueda
  */
-function fetchData(/*term = ''*/) {
+function fetchData(term = '') {
   isLoading.value = true
-  // const urlWithParam = `${props.url}?term=${encodeURIComponent(term)}`
-  const urlWithParam = `${props.url}`
+
+  // Construir URL con parámetro de búsqueda si se proporciona un término
+  let urlWithParam = props.url
+  if (term && term.trim()) {
+    const separator = props.url.includes('?') ? '&' : '?'
+    urlWithParam = `${props.url}${separator}${props.searchParam}=${encodeURIComponent(term.trim())}`
+  }
+
   api
     .get(urlWithParam)
     .then((response) => {
@@ -172,7 +206,6 @@ function fetchData(/*term = ''*/) {
       isLoading.value = false
     })
 }
-
 function fetchDefaultData() {
   if (!props.defaultIds || props.defaultIds.length === 0) return
 
@@ -192,6 +225,41 @@ function fetchDefaultData() {
     .finally(() => {
       isLoading.value = false
     })
+}
+
+/**
+ * Hacer prefetch de un valor específico si no está en las opciones actuales
+ */
+async function prefetchValue(value) {
+  if (!value || !props.autoPrefetch) return
+
+  // Si ya tenemos este valor en las opciones, no hacer nada
+  const exists = options.value.some((opt) => opt.value == value)
+  if (exists) return
+
+  try {
+    isLoading.value = true
+
+    // Determinar el endpoint para prefetch
+    let endpoint = props.prefetchEndpoint
+    if (!endpoint) {
+      // Usar el URL base + '/ID/'
+      const baseUrl = props.url.replace(/\/$/, '') // Remover trailing slash si existe
+      endpoint = `${baseUrl}/${value}/`
+    }
+
+    const response = await api.get(endpoint)
+    const item = response.data
+    const option = buildOption(item)
+
+    // Agregar la opción al inicio de la lista
+    options.value.unshift(option)
+  } catch (error) {
+    console.error('Error al hacer prefetch del valor:', error)
+    // No hacer nada más, simplemente el valor se mostrará como ID
+  } finally {
+    isLoading.value = false
+  }
 }
 
 /**
@@ -286,7 +354,30 @@ async function handleCreate() {
 onMounted(() => {
   fetchData()
   fetchDefaultData()
+
+  // Hacer prefetch del valor inicial si existe
+  if (model.value && !props.multiple) {
+    prefetchValue(model.value)
+  } else if (model.value && props.multiple && Array.isArray(model.value)) {
+    // Para múltiples valores, hacer prefetch de cada uno
+    model.value.forEach((value) => prefetchValue(value))
+  }
 })
+
+// Watcher para hacer prefetch cuando cambie el valor del modelo externamente
+watch(
+  () => model.value,
+  (newValue, oldValue) => {
+    if (newValue !== oldValue && newValue) {
+      if (!props.multiple) {
+        prefetchValue(newValue)
+      } else if (Array.isArray(newValue)) {
+        newValue.forEach((value) => prefetchValue(value))
+      }
+    }
+  },
+  { immediate: false },
+)
 
 watch(
   () => props.multiple,
