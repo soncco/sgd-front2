@@ -207,7 +207,7 @@ async function fetchDocumento() {
     info.expediente = data.expediente_numero || ''
     info.fecha_expediente = formatFecha(data.expediente_fecha) || ''
     info.remitente = data.remitente_nombre || ''
-    info.oficina = data.remitente_oficina || ''
+    info.oficina = data.remitente_oficina_nombre || ''
     info.tipo_documento = data.tipo_nombre // puedes poner objeto o solo id
     info.numero = data.numero
     info.fecha_documento = formatFecha(data.fecha)
