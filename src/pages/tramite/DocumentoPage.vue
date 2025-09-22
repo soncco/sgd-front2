@@ -8,50 +8,56 @@
         <div class="col-4 q-gutter-md">
           <SimpleTitle title="Información" />
 
-          <q-input outlined readonly :model-value="info.expediente" label="Expediente" />
-          <q-input
-            outlined
-            readonly
-            :model-value="info.fecha_expediente"
-            label="Fecha expediente"
-          />
-          <q-input outlined readonly :model-value="info.remitente" label="Remitente" />
+          <div class="info-field">
+            <div class="field-label">Expediente</div>
+            <div class="field-value">{{ info.expediente }}</div>
+          </div>
 
-          <!-- Oficina -->
-          <q-input outlined readonly :model-value="info.oficina || 'Sin oficina'" label="Oficina" />
+          <div class="info-field">
+            <div class="field-label">Fecha expediente</div>
+            <div class="field-value">{{ info.fecha_expediente }}</div>
+          </div>
 
-          <!-- Tipo de documento -->
-          <q-input
-            outlined
-            readonly
-            :model-value="info.tipo_documento || ''"
-            label="Tipo de documento"
-          />
+          <div class="info-field">
+            <div class="field-label">Remitente</div>
+            <div class="field-value">{{ info.remitente }}</div>
+          </div>
 
-          <q-input outlined readonly :model-value="info.numero" label="Número" />
-          <q-input outlined readonly :model-value="info.fecha_documento" label="Fecha documento" />
+          <div class="info-field">
+            <div class="field-label">Oficina</div>
+            <div class="field-value">{{ info.oficina || 'Sin oficina' }}</div>
+          </div>
+
+          <div class="info-field">
+            <div class="field-label">Tipo de documento</div>
+            <div class="field-value">{{ info.tipo_documento || '' }}</div>
+          </div>
+
+          <div class="info-field">
+            <div class="field-label">Número</div>
+            <div class="field-value">{{ info.numero }}</div>
+          </div>
+
+          <div class="info-field">
+            <div class="field-label">Fecha documento</div>
+            <div class="field-value">{{ info.fecha_documento }}</div>
+          </div>
         </div>
 
         <!-- Documento y destinatarios -->
         <div class="col-8 q-gutter-md">
           <SimpleTitle title="Documento" />
-          <q-input
-            outlined
-            type="textarea"
-            autogrow
-            readonly
-            :model-value="info.asunto"
-            label="Asunto"
-          />
+          <div class="info-field">
+            <div class="field-label">Asunto</div>
+            <div class="field-value text-area">{{ info.asunto }}</div>
+          </div>
 
           <SimpleTitle title="Destinatarios" />
           <div v-for="(dest, index) in info.destinatarios" :key="index">
-            <q-input
-              outlined
-              readonly
-              :model-value="formatDestinatario(dest)"
-              label="Destinatario"
-            />
+            <div class="info-field">
+              <div class="field-label">Destinatario</div>
+              <div class="field-value">{{ formatDestinatario(dest) }}</div>
+            </div>
           </div>
 
           <SimpleTitle title="Archivos" />
@@ -73,6 +79,64 @@
     </div>
   </q-page>
 </template>
+
+<style scoped>
+.info-field {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #f8f9fa;
+  border-left: 3px solid #2196f3;
+}
+
+.field-label {
+  font-size: 0.7rem;
+  color: #546e7a;
+  margin-bottom: 0.25rem;
+}
+
+.field-value {
+  font-size: 0.875rem;
+  color: #37474f;
+  line-height: 1.3;
+}
+
+.text-area {
+  white-space: pre-wrap;
+  min-height: 60px;
+  background: #fff;
+  padding: 0.5rem;
+  border-radius: 3px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Estilos para la sección de archivos */
+.q-item {
+  border-radius: 4px;
+  margin: 0.25rem 0;
+  padding: 0.5rem;
+  background: #f3f4f6;
+}
+
+.q-item:hover {
+  background: #e5e7eb;
+}
+
+/* Estilos responsive */
+@media (max-width: 768px) {
+  .info-field {
+    margin-bottom: 0.375rem;
+    padding: 0.375rem 0.5rem;
+  }
+
+  .field-value {
+    font-size: 0.8125rem;
+  }
+
+  .q-gutter-md > * {
+    margin: 4px 0;
+  }
+}
+</style>
 
 <script setup>
 import { reactive, onMounted } from 'vue'
@@ -143,7 +207,7 @@ async function fetchDocumento() {
     info.expediente = data.expediente_numero || ''
     info.fecha_expediente = formatFecha(data.expediente_fecha) || ''
     info.remitente = data.remitente_nombre || ''
-    info.oficina = data.remitente_oficina || ''
+    info.oficina = data.remitente_oficina_nombre || ''
     info.tipo_documento = data.tipo_nombre // puedes poner objeto o solo id
     info.numero = data.numero
     info.fecha_documento = formatFecha(data.fecha)
