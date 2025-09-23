@@ -358,7 +358,8 @@ const submitForm = async () => {
     formData.append('documento[numero]', info.numero)
     formData.append(
       'documento[asignacion_cargo]',
-      persona.value.asignaciones_cargo?.find((a) => a.oficina_nombre === info.oficina)?.id || '',
+      persona.value.asignaciones_cargo?.find((a) => a.oficina_nombre === info.oficina.label)?.id ||
+        '',
     )
     formData.append('documento[asunto]', info.asunto)
     formData.append('documento[resumen]', '')
