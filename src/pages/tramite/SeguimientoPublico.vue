@@ -153,7 +153,11 @@ const columns = [
 ]
 
 function verSeguimiento(row) {
-  router.push(`/expediente/${row.numero}/seguimiento-publico`)
+  if (row.id) {
+    router.push(`/expediente/${row.id}/seguimiento`)
+  } else {
+    Notify.create({ type: 'negative', message: 'No se encontró el ID del expediente' })
+  }
 }
 
 async function buscar() {
