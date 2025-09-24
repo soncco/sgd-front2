@@ -20,6 +20,7 @@
       map-options
       :return-object="returnObject"
       :readonly="readonly"
+      :use-chips="multiple"
     >
       <!-- Slot personalizado para cuando no hay opciones -->
       <template v-slot:no-option>
@@ -200,7 +201,22 @@ function fetchData(term = '') {
   api
     .get(urlWithParam)
     .then((response) => {
-      options.value = response.data.results.map((item) => buildOption(item))
+      // Manejar diferentes formatos de respuesta de la API
+      let data = response.data
+      if (data.results && Array.isArray(data.results)) {
+        // Formato paginado estándar de Django REST framework
+        options.value = data.results.map((item) => buildOption(item))
+      } else if (Array.isArray(data)) {
+        // Formato array directo
+        options.value = data.map((item) => buildOption(item))
+      } else {
+        console.warn('Formato de respuesta de API no reconocido:', data)
+        options.value = []
+      }
+    })
+    .catch((error) => {
+      console.error('Error al cargar datos de la API:', error)
+      options.value = []
     })
     .finally(() => {
       isLoading.value = false
@@ -214,13 +230,31 @@ function fetchDefaultData() {
   api
     .get(urlWithParam)
     .then((response) => {
-      const defaultOptions = response.data.results.map((item) => buildOption(item))
+      // Manejar diferentes formatos de respuesta de la API
+      let data = response.data
+      let items = []
+
+      if (data.results && Array.isArray(data.results)) {
+        // Formato paginado estándar de Django REST framework
+        items = data.results
+      } else if (Array.isArray(data)) {
+        // Formato array directo
+        items = data
+      } else {
+        console.warn('Formato de respuesta de API no reconocido para defaultIds:', data)
+        return
+      }
+
+      const defaultOptions = items.map((item) => buildOption(item))
 
       options.value = [...options.value, ...defaultOptions]
 
       model.value = props.multiple
         ? defaultOptions.map((opt) => (props.returnObject ? opt.original : opt.value))
         : (props.returnObject ? defaultOptions[0]?.original : defaultOptions[0]?.value) || null
+    })
+    .catch((error) => {
+      console.error('Error al cargar datos por defecto:', error)
     })
     .finally(() => {
       isLoading.value = false
@@ -230,7 +264,7 @@ function fetchDefaultData() {
 /**
  * Hacer prefetch de un valor específico si no está en las opciones actuales
  */
-async function prefetchValue(value) {
+async function prefetchValue(value, setLoading = true) {
   if (!value || !props.autoPrefetch) return
 
   // Si ya tenemos este valor en las opciones, no hacer nada
@@ -238,7 +272,7 @@ async function prefetchValue(value) {
   if (exists) return
 
   try {
-    isLoading.value = true
+    if (setLoading) isLoading.value = true
 
     // Determinar el endpoint para prefetch
     let endpoint = props.prefetchEndpoint
@@ -257,6 +291,49 @@ async function prefetchValue(value) {
   } catch (error) {
     console.error('Error al hacer prefetch del valor:', error)
     // No hacer nada más, simplemente el valor se mostrará como ID
+  } finally {
+    if (setLoading) isLoading.value = false
+  }
+}
+
+/**
+ * Hacer prefetch de múltiples valores de forma eficiente
+ */
+async function prefetchMultipleValues(values) {
+  if (!values || !Array.isArray(values) || values.length === 0 || !props.autoPrefetch) return
+
+  // Filtrar valores que ya existen en las opciones
+  const missingValues = values.filter((value) => {
+    return !options.value.some((opt) => opt.value == value)
+  })
+
+  if (missingValues.length === 0) return
+
+  try {
+    isLoading.value = true
+
+    // Intentar hacer una llamada batch si el endpoint lo soporta
+    const separator = props.url.includes('?') ? '&' : '?'
+    const batchUrl = `${props.url}${separator}id__in=${missingValues.join(',')}`
+
+    const response = await api.get(batchUrl)
+
+    if (response.data && response.data.results) {
+      // La API soporta batch, procesamos todos los resultados
+      const newOptions = response.data.results.map((item) => buildOption(item))
+      options.value = [...options.value, ...newOptions]
+    } else if (response.data && Array.isArray(response.data)) {
+      // La API devuelve array directo
+      const newOptions = response.data.map((item) => buildOption(item))
+      options.value = [...options.value, ...newOptions]
+    } else {
+      // Fallback: hacer llamadas individuales
+      await Promise.all(missingValues.map((value) => prefetchValue(value, false)))
+    }
+  } catch (error) {
+    console.error('Error al hacer prefetch batch, intentando individual:', error)
+    // Fallback: hacer llamadas individuales sin setLoading para evitar conflictos
+    await Promise.all(missingValues.map((value) => prefetchValue(value, false)))
   } finally {
     isLoading.value = false
   }
@@ -351,28 +428,28 @@ async function handleCreate() {
 /**
  * Watchers y lifecycle
  */
-onMounted(() => {
+onMounted(async () => {
   fetchData()
   fetchDefaultData()
 
   // Hacer prefetch del valor inicial si existe
   if (model.value && !props.multiple) {
-    prefetchValue(model.value)
+    await prefetchValue(model.value)
   } else if (model.value && props.multiple && Array.isArray(model.value)) {
-    // Para múltiples valores, hacer prefetch de cada uno
-    model.value.forEach((value) => prefetchValue(value))
+    // Para múltiples valores, hacer prefetch en batch
+    await prefetchMultipleValues(model.value)
   }
 })
 
 // Watcher para hacer prefetch cuando cambie el valor del modelo externamente
 watch(
   () => model.value,
-  (newValue, oldValue) => {
+  async (newValue, oldValue) => {
     if (newValue !== oldValue && newValue) {
       if (!props.multiple) {
-        prefetchValue(newValue)
+        await prefetchValue(newValue)
       } else if (Array.isArray(newValue)) {
-        newValue.forEach((value) => prefetchValue(value))
+        await prefetchMultipleValues(newValue)
       }
     }
   },
@@ -406,3 +483,54 @@ watch(
   { immediate: true },
 )
 </script>
+
+<!--
+APISelect - Componente para seleccionar elementos desde una API
+
+Uso básico:
+<APISelect
+  v-model="selectedValue"
+  url="/api/productos/"
+  field="nombre"
+  label="Seleccionar Producto"
+/>
+
+Búsqueda con término personalizado:
+<APISelect
+  v-model="selectedValue"
+  url="/api/productos/"
+  field="nombre"
+  search-param="search"
+  label="Buscar Producto"
+/>
+Cuando el usuario escriba "cemento" hará: GET /api/productos/?search=cemento
+
+Prefetch automático:
+Si tienes un valor inicial (ej: ID 100) y no está en las primeras opciones cargadas,
+el componente automáticamente hará una petición para obtener la información completa
+de ese elemento y mostrarlo correctamente.
+
+Para personalizar el endpoint de prefetch:
+<APISelect
+  v-model="selectedValue"
+  url="/api/productos/"
+  prefetch-endpoint="/api/productos/detalle/"
+  field="nombre"
+/>
+
+Para desactivar el prefetch automático:
+<APISelect
+  v-model="selectedValue"
+  url="/api/productos/"
+  :auto-prefetch="false"
+  field="nombre"
+/>
+
+Props principales:
+- url: Endpoint base para cargar opciones
+- field: Campo a mostrar como label (string o función)
+- multiple: Permitir selección múltiple
+- searchParam: Nombre del parámetro de búsqueda (default: 'term')
+- autoPrefetch: Hacer prefetch automático del valor inicial (default: true)
+- prefetchEndpoint: Endpoint personalizado para prefetch (opcional)
+-->
