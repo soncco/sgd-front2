@@ -39,7 +39,7 @@
             <q-input
               outlined
               required
-              v-model="info.oficina"
+              v-model="info.oficina_nombre"
               label="Oficina"
               maxlength="255"
               :error-message="errores_texto.oficina"
@@ -177,12 +177,6 @@ const errores_texto = reactive({})
 const today = new Date().toISOString().slice(0, 10)
 info.fecha_documento = today
 
-const oficinaOptions = reactive({
-  readonly: true,
-  showNoOficinaMsg: false,
-  options: [],
-})
-
 // Format for date display
 function formatFecha(fecha) {
   if (!fecha) return ''
@@ -207,31 +201,38 @@ async function fetchDocumento() {
     const data = res.data
     console.log('Documento data:', data)
 
-    // Llenar info del documento (expediente, fecha-expediente, remitente, oficina, destinatario)
-
     // Documento padre
     info.documento_padre = data.id || null
 
-    // Expediente (se mantiene igual)
+    // Expediente
     info.expediente_id = data.expediente || ''
     info.expediente = data.expediente_numero || ''
     info.fecha_expediente = formatFecha(data.expediente_fecha) || ''
 
-    // Remitente: será el usuario actual, lo seteamos en fetchPersonaActual()
-    // Solo dejamos espacio para mostrar en pantalla el original (si quieres)
-    info.remitente_original = data.remitente_nombre || ''
-    info.oficina_original = data.remitente_oficina || ''
+    // Remitente
+    // Corregido aqui: ya esta llenado por el fetchPersonaActual
 
-    // Nuevo destinatario = remitente original
+    // Buscar la oficina que conincide con el id de la persona actual
+    const destinoPersona = data.destinos.find((d) => d.destinatario === persona.value.id)
+
+    if (destinoPersona) {
+      info.oficina = destinoPersona.oficina_destino
+      info.oficina_nombre = destinoPersona.oficina_destino_nombre
+    } else {
+      info.oficina = null
+      info.oficina_nombre = 'desconocido'
+    }
+
+    // Destinatario del documento
     info.destinatarios = [
       {
         persona: { id: data.remitente, nombre_completo: data.remitente_nombre },
-        oficina: { id: data.remitente_oficina, nombre: data.remitente_oficina_nombre },
+        oficina: {
+          id: data.remitente_oficina,
+          nombre: data.remitente_oficina_nombre,
+        },
       },
     ]
-
-    console.log('info: ', info)
-    //console.log(info)
   } catch (error) {
     console.error('Error al obtener documento:', error)
     Notify.create({
@@ -248,26 +249,6 @@ async function fetchPersonaActual() {
     persona.value = personaStore.persona
 
     info.remitente = `${persona.value.nombres} ${persona.value.apellidos}`
-
-    const oficinas =
-      persona.value.asignaciones_cargo?.map((a) => ({
-        label: a.oficina_nombre,
-        value: a.oficina,
-      })) || []
-
-    if (oficinas.length === 1) {
-      info.oficina = oficinas[0].label
-      oficinaOptions.readonly = true
-      oficinaOptions.showNoOficinaMsg = false
-    } else if (oficinas.length === 0) {
-      info.oficina = ''
-      oficinaOptions.readonly = true
-      oficinaOptions.showNoOficinaMsg = true
-    } else {
-      oficinaOptions.options = oficinas
-      oficinaOptions.readonly = false
-      oficinaOptions.showNoOficinaMsg = false
-    }
   } catch (error) {
     console.error('Error al obtener persona actual:', error)
     Notify.create({
@@ -298,8 +279,9 @@ async function fetchNumeroDocumento(tipo_id) {
 }
 
 onMounted(() => {
-  fetchDocumento()
+  console.log('fetchDocumento() iniciado, id:', route.params.id)
   fetchPersonaActual()
+  fetchDocumento()
 })
 
 watch(
@@ -312,51 +294,37 @@ watch(
 // ... dentro de <script setup>
 
 const submitForm = async () => {
-  // Limpia los errores existentes
+  // Limpiar errores
   Object.keys(errores).forEach((k) => (errores[k] = false))
   Object.keys(errores_texto).forEach((k) => (errores_texto[k] = ''))
 
   try {
-    const formData = new FormData()
-
-    // 1. Obtener el ID del expediente
-    // Asume que el ID del expediente original está disponible en 'info.expediente_id'
-    // Si no lo tienes, deberás ajustarlo en fetchDocumento() para obtener el ID real.
-    const expedienteId = info.expediente_id // <-- CAMBIO CLAVE
-
-    // 2. Apuntar al endpoint correcto
+    const expedienteId = info.expediente_id
     const endpoint = `/api/tramite/expedientes/${expedienteId}/documentos/`
 
-    // 3. Agregar los campos del documento al FormData
-    // Los campos ya no necesitan el prefijo 'documento[...]' si tu backend
-    // lo espera directamente en el payload principal.
-    // Si tu backend espera 'documento[...]', mantén la estructura.
+    const asignacion = persona.value.asignaciones_cargo?.find((a) => a.oficina === info.oficina)
 
-    // Si usas JSON como en la última implementación:
+    // Preparar payload JSON por si no hay archivos
     const payload = {
       numero: info.numero,
-      tipo: info.tipo_documento,
+      tipo: info.tipo_documento?.id || '',
       remitente: persona.value.id,
-      asignacion_cargo: persona.value.asignaciones_cargo?.find(
-        (a) => a.oficina_nombre === info.oficina,
-      )?.id,
-      documento_padre: info.documento_padre,
+      asignacion_cargo: asignacion ? asignacion.id : 'xd',
+      documento_padre: info.documento_padre || '',
       asunto: info.asunto,
-      resumen: info.resumen, // Asegúrate de que este campo exista en tu reactive
-      es_informativo: false, // O el valor que corresponda
+      es_informativo: false,
       destinos_documento: info.destinatarios.map((d) => ({
         destinatario: d.persona.id,
         oficina_destino: d.oficina.id,
-        es_delegacion: false, // O el valor que corresponda
+        es_delegacion: false,
       })),
     }
-    console.log(payload)
 
-    // Manejar el caso de multipart/form-data con archivos
+    // Si hay archivos, usar FormData
     if (info.archivos && info.archivos.length > 0) {
-      // Si hay archivos, usamos FormData
+      const formData = new FormData()
       formData.append('numero', info.numero || '')
-      formData.append('tipo', info.tipo_documento || '')
+      formData.append('tipo', info.tipo_documento?.id || '')
       formData.append('remitente', persona.value.id)
       formData.append(
         'asignacion_cargo',
@@ -364,15 +332,16 @@ const submitForm = async () => {
       )
       formData.append('documento_padre', info.documento_padre || '')
       formData.append('asunto', info.asunto)
-      formData.append('resumen', info.resumen)
       formData.append('es_informativo', false)
 
+      // Destinatarios
       info.destinatarios.forEach((dest, index) => {
         formData.append(`destinos_documento[${index}][destinatario]`, dest.persona.id)
         formData.append(`destinos_documento[${index}][oficina_destino]`, dest.oficina.id)
-        formData.append(`destinos_documento[${index}][es_delegacion]`, false) // faltaba
+        formData.append(`destinos_documento[${index}][es_delegacion]`, false)
       })
 
+      // Archivos
       info.archivos.forEach((file, index) => {
         formData.append(`documento[archivos][${index}][archivo]`, file)
         formData.append(
@@ -381,40 +350,27 @@ const submitForm = async () => {
         )
       })
 
-      const obj = Object.fromEntries(formData.entries())
-      console.log('Formdata generado: ', obj)
-
-      const response = await api.post(endpoint, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      console.log('Documento creado:', response.data)
+      console.log('FormData generado:', Object.fromEntries(formData.entries()))
+      await api.post(endpoint, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
     } else {
-      // Si no hay archivos, podemos usar JSON puro
-      const response = await api.post(endpoint, payload)
-      console.log('Documento creado:', response.data)
+      console.log('Payload JSON:', payload)
+      await api.post(endpoint, payload)
     }
 
-    // Notificación de éxito y redirección
-    Notify.create({
-      type: 'positive',
-      message: 'Documento creado con éxito',
-    })
+    Notify.create({ type: 'positive', message: 'Documento creado con éxito' })
     router.push('/bandeja/salida')
   } catch (error) {
     if (error.response?.status === 400) {
-      console.error('❌ Error 400 - Detalles del backend:', error.response.data)
       const data = error.response.data
       Object.entries(data).forEach(([field, msg]) => {
         errores[field] = true
         errores_texto[field] = Array.isArray(msg) ? msg[0] : msg
       })
+      console.error('Error 400 del backend:', data)
     } else {
       console.error('Error desconocido:', error)
     }
-    Notify.create({
-      type: 'negative',
-      message: 'Revisa los errores en el formulario',
-    })
+    Notify.create({ type: 'negative', message: 'Revisa los errores en el formulario' })
   }
 }
 </script>
