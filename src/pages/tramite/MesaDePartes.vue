@@ -1,703 +1,714 @@
 <template>
-  <q-page padding class="mesa-de-partes">
-    <PageTitle title="Mesa de Partes" icon="assignment" class="q-mb-md" />
+  <q-layout>
+    <q-page-container>
+      <q-page padding class="mesa-de-partes">
+        <PageTitle title="Mesa de Partes" icon="assignment" class="q-mb-md" />
 
-    <!-- Header info - responsive -->
-    <div class="row justify-center q-mb-lg">
-      <q-card flat bordered class="info-header q-pa-md bg-grey-1">
-        <div class="row q-col-gutter-md justify-center items-center">
-          <div class="col-12 col-sm-6 text-center">
-            <div class="text-caption text-grey-7">Fecha</div>
-            <div class="text-h6 text-primary">{{ fechaActual }}</div>
-          </div>
-
-          <div class="col-12 col-sm-6 text-center">
-            <div class="text-caption text-grey-7">Nro de Solicitud</div>
-            <div class="text-h6 text-primary">{{ numeroExpediente }}</div>
-          </div>
-        </div>
-      </q-card>
-    </div>
-
-    <div class="form-container">
-      <q-stepper v-model="step" flat animated header-nav color="primary" class="stepper-responsive">
-        <!-- Paso 1: Datos del Remitente -->
-        <q-step
-          :name="1"
-          title="Datos del Remitente"
-          icon="person"
-          :done="step > 1"
-          :header-nav="step > 1"
-        >
-          <div class="step-content">
-            <q-form @submit.prevent="validateAndNextStep(1)" class="q-gutter-md">
-              <!-- Tipo de Persona -->
-              <q-select
-                v-model="form.remitente_tipo_persona"
-                :options="tiposPersonaOptions"
-                option-value="value"
-                option-label="label"
-                emit-value
-                map-options
-                outlined
-                label="Tipo de Persona *"
-                dense
-                :rules="[validationRules.required('Tipo de persona es requerido')]"
-                :error="hasFieldError('remitente_tipo_persona')"
-                :error-message="getFieldError('remitente_tipo_persona')"
-                class="q-mb-md"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="business" />
-                </template>
-              </q-select>
-
-              <!-- Tipo de Documento -->
-              <q-select
-                v-model="form.remitente_tipo_doc"
-                :options="tiposDocOptions"
-                option-value="value"
-                option-label="label"
-                emit-value
-                map-options
-                outlined
-                label="Tipo de Documento *"
-                dense
-                :rules="[validationRules.required('Tipo de documento es requerido')]"
-                :error="hasFieldError('remitente_tipo_doc')"
-                :error-message="getFieldError('remitente_tipo_doc')"
-                class="q-mb-md"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="badge" />
-                </template>
-              </q-select>
-
-              <!-- Documento de Identidad -->
-              <q-input
-                outlined
-                v-model="form.remitente_documento"
-                label="Documento de Identidad *"
-                :rules="getDocumentValidationRules()"
-                :error="hasFieldError('remitente_documento')"
-                :error-message="getFieldError('remitente_documento')"
-                :mask="getDocumentMask()"
-                :hint="getDocumentHint()"
-                class="q-mb-md"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="credit_card" />
-                </template>
-              </q-input>
-
-              <!-- Nombres -->
-              <q-input
-                outlined
-                v-model="form.remitente_nombres"
-                label="Nombres *"
-                :rules="[
-                  validationRules.required('Nombres son requeridos'),
-                  validationRules.minLength(2, 'Mínimo 2 caracteres'),
-                  validationRules.maxLength(100, 'Máximo 100 caracteres'),
-                ]"
-                :error="hasFieldError('remitente_nombres')"
-                :error-message="getFieldError('remitente_nombres')"
-                counter
-                maxlength="100"
-                class="q-mb-md"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="person" />
-                </template>
-              </q-input>
-
-              <!-- Apellidos -->
-              <q-input
-                outlined
-                v-model="form.remitente_apellidos"
-                label="Apellidos *"
-                :rules="[
-                  validationRules.required('Apellidos son requeridos'),
-                  validationRules.minLength(2, 'Mínimo 2 caracteres'),
-                  validationRules.maxLength(100, 'Máximo 100 caracteres'),
-                ]"
-                :error="hasFieldError('remitente_apellidos')"
-                :error-message="getFieldError('remitente_apellidos')"
-                counter
-                maxlength="100"
-                class="q-mb-md"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="person_outline" />
-                </template>
-              </q-input>
-
-              <!-- Correo Electrónico -->
-              <q-input
-                outlined
-                v-model="form.remitente_email"
-                label="Correo Electrónico *"
-                type="email"
-                :rules="[
-                  validationRules.required('Correo electrónico es requerido'),
-                  validationRules.email('Formato de correo inválido'),
-                ]"
-                :error="hasFieldError('remitente_email')"
-                :error-message="getFieldError('remitente_email')"
-                class="q-mb-md"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="email" />
-                </template>
-                <template v-slot:hint>
-                  <q-icon name="info" size="xs" class="q-mr-xs" />
-                  Se enviará una copia del trámite a este correo
-                </template>
-              </q-input>
-
-              <!-- Celular -->
-              <q-input
-                outlined
-                v-model="form.remitente_celular"
-                label="Celular *"
-                type="tel"
-                :rules="[
-                  validationRules.required('Número de celular es requerido'),
-                  validationRules.phone('Formato de celular inválido'),
-                ]"
-                :error="hasFieldError('remitente_celular')"
-                :error-message="getFieldError('remitente_celular')"
-                mask="### ### ###"
-                hint="Ejemplo: 987 654 321"
-                class="q-mb-md"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="phone" />
-                </template>
-              </q-input>
-
-              <!-- Botones -->
-              <div class="row justify-end q-mt-lg">
-                <q-btn
-                  label="Siguiente"
-                  type="submit"
-                  color="primary"
-                  icon-right="arrow_forward"
-                  :loading="isLoading('step1')"
-                  class="q-px-xl"
-                />
+        <!-- Header info - responsive -->
+        <div class="row justify-center q-mb-lg">
+          <q-card flat bordered class="info-header q-pa-md bg-grey-1">
+            <div class="row q-col-gutter-md justify-center items-center">
+              <div class="col-12 col-sm-6 text-center">
+                <div class="text-caption text-grey-7">Fecha</div>
+                <div class="text-h6 text-primary">{{ fechaActual }}</div>
               </div>
-            </q-form>
-          </div>
-        </q-step>
 
-        <!-- Paso 2: Tipo de Trámite -->
-        <q-step
-          :name="2"
-          title="Tipo de Trámite"
-          icon="assignment"
-          :done="step > 2"
-          :header-nav="step > 2"
-        >
-          <div class="step-content">
-            <q-form @submit.prevent="validateAndNextStep(2)" class="q-gutter-md">
-              <!-- Checkbox para otros trámites -->
-              <q-checkbox
-                v-model="form.esOtroTramite"
-                color="primary"
-                label="Es un trámite que no está en el TUPA (otros trámites)"
-                class="q-mb-md"
-              />
+              <div class="col-12 col-sm-6 text-center">
+                <div class="text-caption text-grey-7">Nro de Solicitud</div>
+                <div class="text-h6 text-primary">{{ numeroExpediente }}</div>
+              </div>
+            </div>
+          </q-card>
+        </div>
 
-              <!-- Selección de TUPA (solo si no es otro trámite) -->
-              <div v-if="!form.esOtroTramite">
-                <APISelect
-                  v-model="form.tupa"
-                  url="/api/base/tupas/"
-                  field="denominacion"
-                  label="Seleccionar TUPA *"
-                  :rules="[validationRules.required('TUPA es requerido')]"
-                  :error="hasFieldError('tupa')"
-                  :error-message="getFieldError('tupa')"
-                  :return-object="true"
-                  class="q-mb-md"
-                  @update:model-value="onTupaSelected"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="assignment" />
-                  </template>
-                </APISelect>
+        <div class="form-container">
+          <q-stepper
+            v-model="step"
+            flat
+            animated
+            header-nav
+            color="primary"
+            class="stepper-responsive"
+          >
+            <!-- Paso 1: Datos del Remitente -->
+            <q-step
+              :name="1"
+              title="Datos del Remitente"
+              icon="person"
+              :done="step > 1"
+              :header-nav="step > 1"
+            >
+              <div class="step-content">
+                <q-form @submit.prevent="validateAndNextStep(1)" class="q-gutter-md">
+                  <!-- Tipo de Persona -->
+                  <q-select
+                    v-model="form.remitente_tipo_persona"
+                    :options="tiposPersonaOptions"
+                    option-value="value"
+                    option-label="label"
+                    emit-value
+                    map-options
+                    outlined
+                    label="Tipo de Persona *"
+                    dense
+                    :rules="[validationRules.required('Tipo de persona es requerido')]"
+                    :error="hasFieldError('remitente_tipo_persona')"
+                    :error-message="getFieldError('remitente_tipo_persona')"
+                    class="q-mb-md"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="business" />
+                    </template>
+                  </q-select>
 
-                <!-- Información del TUPA seleccionado -->
-                <div v-if="selectedTupaInfo" class="q-mb-lg">
-                  <q-card flat bordered class="bg-blue-1">
+                  <!-- Tipo de Documento -->
+                  <q-select
+                    v-model="form.remitente_tipo_doc"
+                    :options="tiposDocOptions"
+                    option-value="value"
+                    option-label="label"
+                    emit-value
+                    map-options
+                    outlined
+                    label="Tipo de Documento *"
+                    dense
+                    :rules="[validationRules.required('Tipo de documento es requerido')]"
+                    :error="hasFieldError('remitente_tipo_doc')"
+                    :error-message="getFieldError('remitente_tipo_doc')"
+                    class="q-mb-md"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="badge" />
+                    </template>
+                  </q-select>
+
+                  <!-- Documento de Identidad -->
+                  <q-input
+                    outlined
+                    v-model="form.remitente_documento"
+                    label="Documento de Identidad *"
+                    :rules="getDocumentValidationRules()"
+                    :error="hasFieldError('remitente_documento')"
+                    :error-message="getFieldError('remitente_documento')"
+                    :mask="getDocumentMask()"
+                    :hint="getDocumentHint()"
+                    class="q-mb-md"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="credit_card" />
+                    </template>
+                  </q-input>
+
+                  <!-- Nombres -->
+                  <q-input
+                    outlined
+                    v-model="form.remitente_nombres"
+                    label="Nombres *"
+                    :rules="[
+                      validationRules.required('Nombres son requeridos'),
+                      validationRules.minLength(2, 'Mínimo 2 caracteres'),
+                      validationRules.maxLength(100, 'Máximo 100 caracteres'),
+                    ]"
+                    :error="hasFieldError('remitente_nombres')"
+                    :error-message="getFieldError('remitente_nombres')"
+                    counter
+                    maxlength="100"
+                    class="q-mb-md"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="person" />
+                    </template>
+                  </q-input>
+
+                  <!-- Apellidos -->
+                  <q-input
+                    outlined
+                    v-model="form.remitente_apellidos"
+                    label="Apellidos *"
+                    :rules="[
+                      validationRules.required('Apellidos son requeridos'),
+                      validationRules.minLength(2, 'Mínimo 2 caracteres'),
+                      validationRules.maxLength(100, 'Máximo 100 caracteres'),
+                    ]"
+                    :error="hasFieldError('remitente_apellidos')"
+                    :error-message="getFieldError('remitente_apellidos')"
+                    counter
+                    maxlength="100"
+                    class="q-mb-md"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="person_outline" />
+                    </template>
+                  </q-input>
+
+                  <!-- Correo Electrónico -->
+                  <q-input
+                    outlined
+                    v-model="form.remitente_email"
+                    label="Correo Electrónico *"
+                    type="email"
+                    :rules="[
+                      validationRules.required('Correo electrónico es requerido'),
+                      validationRules.email('Formato de correo inválido'),
+                    ]"
+                    :error="hasFieldError('remitente_email')"
+                    :error-message="getFieldError('remitente_email')"
+                    class="q-mb-md"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="email" />
+                    </template>
+                    <template v-slot:hint>
+                      <q-icon name="info" size="xs" class="q-mr-xs" />
+                      Se enviará una copia del trámite a este correo
+                    </template>
+                  </q-input>
+
+                  <!-- Celular -->
+                  <q-input
+                    outlined
+                    v-model="form.remitente_celular"
+                    label="Celular *"
+                    type="tel"
+                    :rules="[
+                      validationRules.required('Número de celular es requerido'),
+                      validationRules.phone('Formato de celular inválido'),
+                    ]"
+                    :error="hasFieldError('remitente_celular')"
+                    :error-message="getFieldError('remitente_celular')"
+                    mask="### ### ###"
+                    hint="Ejemplo: 987 654 321"
+                    class="q-mb-md"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="phone" />
+                    </template>
+                  </q-input>
+
+                  <!-- Botones -->
+                  <div class="row justify-end q-mt-lg">
+                    <q-btn
+                      label="Siguiente"
+                      type="submit"
+                      color="primary"
+                      icon-right="arrow_forward"
+                      :loading="isLoading('step1')"
+                      class="q-px-xl"
+                    />
+                  </div>
+                </q-form>
+              </div>
+            </q-step>
+
+            <!-- Paso 2: Tipo de Trámite -->
+            <q-step
+              :name="2"
+              title="Tipo de Trámite"
+              icon="assignment"
+              :done="step > 2"
+              :header-nav="step > 2"
+            >
+              <div class="step-content">
+                <q-form @submit.prevent="validateAndNextStep(2)" class="q-gutter-md">
+                  <!-- Checkbox para otros trámites -->
+                  <q-checkbox
+                    v-model="form.esOtroTramite"
+                    color="primary"
+                    label="Es un trámite que no está en el TUPA (otros trámites)"
+                    class="q-mb-md"
+                  />
+
+                  <!-- Selección de TUPA (solo si no es otro trámite) -->
+                  <div v-if="!form.esOtroTramite">
+                    <APISelect
+                      v-model="form.tupa"
+                      url="/api/base/tupas/"
+                      field="denominacion"
+                      label="Seleccionar TUPA *"
+                      :rules="[validationRules.required('TUPA es requerido')]"
+                      :error="hasFieldError('tupa')"
+                      :error-message="getFieldError('tupa')"
+                      :return-object="true"
+                      class="q-mb-md"
+                      @update:model-value="onTupaSelected"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="assignment" />
+                      </template>
+                    </APISelect>
+
+                    <!-- Información del TUPA seleccionado -->
+                    <div v-if="selectedTupaInfo" class="q-mb-lg">
+                      <q-card flat bordered class="bg-blue-1">
+                        <q-card-section>
+                          <div class="text-h6 text-primary q-mb-md">
+                            <q-icon name="info" class="q-mr-sm" />
+                            Información del Trámite
+                          </div>
+
+                          <div class="q-mb-md">
+                            <div class="text-subtitle2 text-grey-8">Descripción:</div>
+                            <div class="text-body2">{{ selectedTupaInfo.descripcion }}</div>
+                          </div>
+
+                          <div v-if="selectedTupaInfo.requisitos" class="q-mb-md">
+                            <div class="text-subtitle2 text-grey-8 q-mb-sm">Requisitos:</div>
+                            <div class="text-body2 whitespace-pre-line">
+                              {{ selectedTupaInfo.requisitos }}
+                            </div>
+                          </div>
+
+                          <div v-if="selectedTupaInfo.unidad_organizativa_nombre">
+                            <div class="text-subtitle2 text-grey-8">Unidad Organizativa:</div>
+                            <div class="text-body2">
+                              {{ selectedTupaInfo.unidad_organizativa_nombre }}
+                            </div>
+                          </div>
+                        </q-card-section>
+                      </q-card>
+                    </div>
+                  </div>
+
+                  <!-- Campos tradicionales (solo si es otro trámite) -->
+                  <div v-if="form.esOtroTramite">
+                    <!-- Tipo de Documento -->
+                    <APISelect
+                      v-model="form.documento.tipo"
+                      url="/api/base/tipos_documento_publicos/"
+                      field="nombre"
+                      label="Tipo de Documento *"
+                      :rules="[validationRules.required('Tipo de documento es requerido')]"
+                      :error="hasFieldError('documento.tipo')"
+                      :error-message="getFieldError('documento.tipo')"
+                      class="q-mb-md"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="description" />
+                      </template>
+                    </APISelect>
+
+                    <!-- Asunto -->
+                    <q-input
+                      outlined
+                      v-model="form.documento.asunto"
+                      label="Asunto *"
+                      type="textarea"
+                      autogrow
+                      :rules="[
+                        validationRules.required('Asunto es requerido'),
+                        validationRules.minLength(10, 'Mínimo 10 caracteres'),
+                        validationRules.maxLength(255, 'Máximo 255 caracteres'),
+                      ]"
+                      :error="hasFieldError('documento.asunto')"
+                      :error-message="getFieldError('documento.asunto')"
+                      counter
+                      maxlength="255"
+                      class="q-mb-md"
+                      hint="Descripción breve y clara del motivo de su solicitud"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="subject" />
+                      </template>
+                    </q-input>
+                  </div>
+
+                  <!-- Resumen/Detalle (siempre visible) -->
+                  <q-input
+                    outlined
+                    v-model="form.documento.resumen"
+                    label="Detalle de la Solicitud"
+                    type="textarea"
+                    autogrow
+                    :rules="[validationRules.maxLength(1000, 'Máximo 1000 caracteres')]"
+                    :error="hasFieldError('documento.resumen')"
+                    :error-message="getFieldError('documento.resumen')"
+                    counter
+                    maxlength="1000"
+                    class="q-mb-md"
+                    hint="Información adicional o detalle de su solicitud (opcional)"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="notes" />
+                    </template>
+                  </q-input>
+
+                  <!-- Botones -->
+                  <div class="row justify-between q-mt-lg">
+                    <q-btn
+                      label="Anterior"
+                      @click="step = 1"
+                      color="grey-7"
+                      outline
+                      icon="arrow_back"
+                      class="q-px-xl"
+                    />
+                    <q-btn
+                      label="Siguiente"
+                      type="submit"
+                      color="primary"
+                      icon-right="arrow_forward"
+                      :loading="isLoading('step2')"
+                      class="q-px-xl"
+                    />
+                  </div>
+                </q-form>
+              </div>
+            </q-step>
+
+            <!-- Paso 3: Archivos -->
+            <q-step
+              :name="3"
+              title="Documentos Adjuntos"
+              icon="attach_file"
+              :done="step > 3"
+              :header-nav="step > 3"
+            >
+              <div class="step-content">
+                <q-form @submit.prevent="validateAndNextStep(3)" class="q-gutter-md">
+                  <!-- Archivo Principal -->
+                  <div class="q-mb-lg">
+                    <div class="text-h6 q-mb-md">
+                      <q-icon name="description" class="q-mr-sm" />
+                      Documento Principal *
+                    </div>
+                    <q-file
+                      v-model="form.documento_principal"
+                      outlined
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      max-file-size="10485760"
+                      :rules="[
+                        validationRules.required('Documento principal es requerido'),
+                        tramiteRules.archivosTramite,
+                      ]"
+                      :error="hasFieldError('documento_principal')"
+                      :error-message="getFieldError('documento_principal')"
+                      hint="Formato: PDF, Word, Imagen. Tamaño máximo: 10MB"
+                      class="q-mb-md"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="cloud_upload" />
+                      </template>
+                    </q-file>
+                  </div>
+
+                  <!-- Archivos Adicionales -->
+                  <div class="q-mb-lg">
+                    <div class="text-h6 q-mb-md">
+                      <q-icon name="attachment" class="q-mr-sm" />
+                      Documentos Adicionales (Opcional)
+                    </div>
+                    <q-file
+                      v-model="form.documento.archivos"
+                      outlined
+                      multiple
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      max-file-size="10485760"
+                      :rules="[tramiteRules.archivosTramite]"
+                      :error="hasFieldError('documento.archivos')"
+                      :error-message="getFieldError('documento.archivos')"
+                      hint="Puede adjuntar varios archivos. Formato: PDF, Word, Imagen. Tamaño máximo por archivo: 10MB"
+                      class="q-mb-md"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="add_circle" />
+                      </template>
+                    </q-file>
+
+                    <!-- Lista de archivos seleccionados -->
+                    <div v-if="form.documento.archivos?.length" class="q-mt-md">
+                      <div class="text-subtitle2 q-mb-sm">Archivos seleccionados:</div>
+                      <div
+                        v-for="(file, index) in form.documento.archivos"
+                        :key="index"
+                        class="file-item q-mb-sm"
+                      >
+                        <q-card flat bordered class="q-pa-sm">
+                          <div class="row items-center">
+                            <q-icon name="description" class="q-mr-sm text-primary" />
+                            <div class="col">
+                              <div class="text-body2">{{ file.name }}</div>
+                              <div class="text-caption text-grey">
+                                {{ formatFileSize(file.size) }}
+                              </div>
+                            </div>
+                          </div>
+                          <!-- Descripción del archivo -->
+                          <q-input
+                            v-model="form.archivosDescripciones[index]"
+                            label="Descripción (opcional)"
+                            dense
+                            outlined
+                            class="q-mt-sm"
+                            maxlength="100"
+                            hint="Breve descripción del contenido de este archivo"
+                          />
+                        </q-card>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Términos y condiciones -->
+                  <div class="q-mb-lg">
+                    <q-checkbox
+                      v-model="form.acceptTerms"
+                      color="primary"
+                      :rules="[(val) => val === true || 'Debe aceptar los términos y condiciones']"
+                      class="q-mb-md"
+                    >
+                      <div class="q-ml-sm">
+                        He leído y acepto los
+                        <a href="#" class="text-primary" @click.prevent="showTermsDialog = true">
+                          términos y condiciones
+                        </a>
+                        *
+                      </div>
+                    </q-checkbox>
+                  </div>
+
+                  <!-- Botones finales -->
+                  <div class="row justify-between q-mt-lg">
+                    <q-btn
+                      label="Anterior"
+                      @click="step = 2"
+                      color="grey-7"
+                      outline
+                      icon="arrow_back"
+                      class="q-px-xl"
+                    />
+                    <q-btn
+                      label="Siguiente"
+                      type="submit"
+                      color="primary"
+                      icon-right="arrow_forward"
+                      :loading="isLoading('step3')"
+                      class="q-px-xl"
+                    />
+                  </div>
+                </q-form>
+              </div>
+            </q-step>
+
+            <!-- Paso 4: Confirmación -->
+            <q-step :name="4" title="Confirmación" icon="check_circle" :done="step > 4">
+              <div class="step-content">
+                <div class="text-h6 q-mb-lg text-center text-primary">
+                  <q-icon name="assignment_turned_in" size="sm" class="q-mr-sm" />
+                  Confirmar Envío del Trámite
+                </div>
+
+                <!-- Resumen del trámite -->
+                <div class="q-gutter-md">
+                  <!-- Datos del remitente -->
+                  <q-card flat bordered class="q-mb-md">
                     <q-card-section>
                       <div class="text-h6 text-primary q-mb-md">
-                        <q-icon name="info" class="q-mr-sm" />
-                        Información del Trámite
+                        <q-icon name="person" class="q-mr-sm" />
+                        Datos del Remitente
                       </div>
-
-                      <div class="q-mb-md">
-                        <div class="text-subtitle2 text-grey-8">Descripción:</div>
-                        <div class="text-body2">{{ selectedTupaInfo.descripcion }}</div>
-                      </div>
-
-                      <div v-if="selectedTupaInfo.requisitos" class="q-mb-md">
-                        <div class="text-subtitle2 text-grey-8 q-mb-sm">Requisitos:</div>
-                        <div class="text-body2 whitespace-pre-line">
-                          {{ selectedTupaInfo.requisitos }}
+                      <div class="row q-gutter-sm">
+                        <div class="col-12 col-md-6">
+                          <div class="text-caption text-grey-7">Nombres y Apellidos</div>
+                          <div class="text-body1">
+                            {{ form.remitente_nombres }} {{ form.remitente_apellidos }}
+                          </div>
                         </div>
-                      </div>
-
-                      <div v-if="selectedTupaInfo.unidad_organizativa_nombre">
-                        <div class="text-subtitle2 text-grey-8">Unidad Organizativa:</div>
-                        <div class="text-body2">
-                          {{ selectedTupaInfo.unidad_organizativa_nombre }}
+                        <div class="col-12 col-md-6">
+                          <div class="text-caption text-grey-7">Documento</div>
+                          <div class="text-body1">{{ form.remitente_documento }}</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <div class="text-caption text-grey-7">Correo Electrónico</div>
+                          <div class="text-body1">{{ form.remitente_email }}</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <div class="text-caption text-grey-7">Celular</div>
+                          <div class="text-body1">{{ form.remitente_celular }}</div>
                         </div>
                       </div>
                     </q-card-section>
                   </q-card>
-                </div>
-              </div>
 
-              <!-- Campos tradicionales (solo si es otro trámite) -->
-              <div v-if="form.esOtroTramite">
-                <!-- Tipo de Documento -->
-                <APISelect
-                  v-model="form.documento.tipo"
-                  url="/api/base/tipos_documento_publicos/"
-                  field="nombre"
-                  label="Tipo de Documento *"
-                  :rules="[validationRules.required('Tipo de documento es requerido')]"
-                  :error="hasFieldError('documento.tipo')"
-                  :error-message="getFieldError('documento.tipo')"
-                  class="q-mb-md"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="description" />
-                  </template>
-                </APISelect>
+                  <!-- Datos del documento/trámite -->
+                  <q-card flat bordered class="q-mb-md">
+                    <q-card-section>
+                      <div class="text-h6 text-primary q-mb-md">
+                        <q-icon name="assignment" class="q-mr-sm" />
+                        Datos del Trámite
+                      </div>
 
-                <!-- Asunto -->
-                <q-input
-                  outlined
-                  v-model="form.documento.asunto"
-                  label="Asunto *"
-                  type="textarea"
-                  autogrow
-                  :rules="[
-                    validationRules.required('Asunto es requerido'),
-                    validationRules.minLength(10, 'Mínimo 10 caracteres'),
-                    validationRules.maxLength(255, 'Máximo 255 caracteres'),
-                  ]"
-                  :error="hasFieldError('documento.asunto')"
-                  :error-message="getFieldError('documento.asunto')"
-                  counter
-                  maxlength="255"
-                  class="q-mb-md"
-                  hint="Descripción breve y clara del motivo de su solicitud"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="subject" />
-                  </template>
-                </q-input>
-              </div>
-
-              <!-- Resumen/Detalle (siempre visible) -->
-              <q-input
-                outlined
-                v-model="form.documento.resumen"
-                label="Detalle de la Solicitud"
-                type="textarea"
-                autogrow
-                :rules="[validationRules.maxLength(1000, 'Máximo 1000 caracteres')]"
-                :error="hasFieldError('documento.resumen')"
-                :error-message="getFieldError('documento.resumen')"
-                counter
-                maxlength="1000"
-                class="q-mb-md"
-                hint="Información adicional o detalle de su solicitud (opcional)"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="notes" />
-                </template>
-              </q-input>
-
-              <!-- Botones -->
-              <div class="row justify-between q-mt-lg">
-                <q-btn
-                  label="Anterior"
-                  @click="step = 1"
-                  color="grey-7"
-                  outline
-                  icon="arrow_back"
-                  class="q-px-xl"
-                />
-                <q-btn
-                  label="Siguiente"
-                  type="submit"
-                  color="primary"
-                  icon-right="arrow_forward"
-                  :loading="isLoading('step2')"
-                  class="q-px-xl"
-                />
-              </div>
-            </q-form>
-          </div>
-        </q-step>
-
-        <!-- Paso 3: Archivos -->
-        <q-step
-          :name="3"
-          title="Documentos Adjuntos"
-          icon="attach_file"
-          :done="step > 3"
-          :header-nav="step > 3"
-        >
-          <div class="step-content">
-            <q-form @submit.prevent="validateAndNextStep(3)" class="q-gutter-md">
-              <!-- Archivo Principal -->
-              <div class="q-mb-lg">
-                <div class="text-h6 q-mb-md">
-                  <q-icon name="description" class="q-mr-sm" />
-                  Documento Principal *
-                </div>
-                <q-file
-                  v-model="form.documento_principal"
-                  outlined
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  max-file-size="10485760"
-                  :rules="[
-                    validationRules.required('Documento principal es requerido'),
-                    tramiteRules.archivosTramite,
-                  ]"
-                  :error="hasFieldError('documento_principal')"
-                  :error-message="getFieldError('documento_principal')"
-                  hint="Formato: PDF, Word, Imagen. Tamaño máximo: 10MB"
-                  class="q-mb-md"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="cloud_upload" />
-                  </template>
-                </q-file>
-              </div>
-
-              <!-- Archivos Adicionales -->
-              <div class="q-mb-lg">
-                <div class="text-h6 q-mb-md">
-                  <q-icon name="attachment" class="q-mr-sm" />
-                  Documentos Adicionales (Opcional)
-                </div>
-                <q-file
-                  v-model="form.documento.archivos"
-                  outlined
-                  multiple
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  max-file-size="10485760"
-                  :rules="[tramiteRules.archivosTramite]"
-                  :error="hasFieldError('documento.archivos')"
-                  :error-message="getFieldError('documento.archivos')"
-                  hint="Puede adjuntar varios archivos. Formato: PDF, Word, Imagen. Tamaño máximo por archivo: 10MB"
-                  class="q-mb-md"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="add_circle" />
-                  </template>
-                </q-file>
-
-                <!-- Lista de archivos seleccionados -->
-                <div v-if="form.documento.archivos?.length" class="q-mt-md">
-                  <div class="text-subtitle2 q-mb-sm">Archivos seleccionados:</div>
-                  <div
-                    v-for="(file, index) in form.documento.archivos"
-                    :key="index"
-                    class="file-item q-mb-sm"
-                  >
-                    <q-card flat bordered class="q-pa-sm">
-                      <div class="row items-center">
-                        <q-icon name="description" class="q-mr-sm text-primary" />
-                        <div class="col">
-                          <div class="text-body2">{{ file.name }}</div>
-                          <div class="text-caption text-grey">
-                            {{ formatFileSize(file.size) }}
+                      <!-- Si es TUPA -->
+                      <div v-if="!form.esOtroTramite && selectedTupaInfo">
+                        <div class="row q-gutter-sm">
+                          <div class="col-12">
+                            <div class="text-caption text-grey-7">Trámite TUPA</div>
+                            <div class="text-body1 text-weight-medium">
+                              {{ selectedTupaInfo.denominacion }}
+                            </div>
+                          </div>
+                          <div class="col-12" v-if="selectedTupaInfo.descripcion">
+                            <div class="text-caption text-grey-7">Descripción</div>
+                            <div class="text-body2">{{ selectedTupaInfo.descripcion }}</div>
+                          </div>
+                          <div class="col-12" v-if="selectedTupaInfo.unidad_organizativa_nombre">
+                            <div class="text-caption text-grey-7">Unidad Organizativa</div>
+                            <div class="text-body2">
+                              {{ selectedTupaInfo.unidad_organizativa_nombre }}
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <!-- Descripción del archivo -->
-                      <q-input
-                        v-model="form.archivosDescripciones[index]"
-                        label="Descripción (opcional)"
-                        dense
-                        outlined
-                        class="q-mt-sm"
-                        maxlength="100"
-                        hint="Breve descripción del contenido de este archivo"
-                      />
-                    </q-card>
+
+                      <!-- Si es otro trámite -->
+                      <div v-else>
+                        <div class="row q-gutter-sm">
+                          <div class="col-12">
+                            <div class="text-caption text-grey-7">Tipo</div>
+                            <div class="text-body1">Otros Trámites</div>
+                          </div>
+                          <div class="col-12" v-if="form.documento?.tipo?.nombre">
+                            <div class="text-caption text-grey-7">Tipo de Documento</div>
+                            <div class="text-body1">{{ form.documento.tipo.nombre }}</div>
+                          </div>
+                          <div class="col-12" v-if="form.documento?.asunto">
+                            <div class="text-caption text-grey-7">Asunto</div>
+                            <div class="text-body1">{{ form.documento.asunto }}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Detalle común -->
+                      <div v-if="form.documento?.resumen" class="q-mt-md">
+                        <div class="text-caption text-grey-7">Detalle de la Solicitud</div>
+                        <div class="text-body2">{{ form.documento.resumen }}</div>
+                      </div>
+                    </q-card-section>
+                  </q-card>
+
+                  <!-- Archivos adjuntos -->
+                  <q-card flat bordered class="q-mb-md">
+                    <q-card-section>
+                      <div class="text-h6 text-primary q-mb-md">
+                        <q-icon name="attach_file" class="q-mr-sm" />
+                        Documentos Adjuntos
+                      </div>
+
+                      <!-- Documento principal -->
+                      <div v-if="form.documento_principal" class="q-mb-md">
+                        <div class="text-subtitle2 q-mb-sm">Documento Principal:</div>
+                        <q-chip icon="description" color="primary" text-color="white">
+                          {{ form.documento_principal.name }}
+                          <q-tooltip>{{ formatFileSize(form.documento_principal.size) }}</q-tooltip>
+                        </q-chip>
+                      </div>
+
+                      <!-- Documentos adicionales -->
+                      <div v-if="form.documento?.archivos?.length">
+                        <div class="text-subtitle2 q-mb-sm">Documentos Adicionales:</div>
+                        <div class="q-gutter-xs">
+                          <q-chip
+                            v-for="(file, index) in form.documento.archivos"
+                            :key="index"
+                            icon="attachment"
+                            color="secondary"
+                            text-color="white"
+                          >
+                            {{ file.name }}
+                            <q-tooltip>{{ formatFileSize(file.size) }}</q-tooltip>
+                          </q-chip>
+                        </div>
+                      </div>
+                    </q-card-section>
+                  </q-card>
+
+                  <!-- Aviso importante -->
+                  <q-banner class="bg-orange-1 text-orange-8 q-mb-md" rounded>
+                    <template v-slot:avatar>
+                      <q-icon name="warning" />
+                    </template>
+                    <div class="text-body2">
+                      <strong>Importante:</strong> Una vez enviado el trámite, recibirá un código de
+                      seguimiento en su correo electrónico. Guárdelo para hacer seguimiento de su
+                      solicitud.
+                    </div>
+                  </q-banner>
+
+                  <!-- Botones -->
+                  <div class="row justify-between q-mt-lg">
+                    <q-btn
+                      label="Anterior"
+                      @click="step = 3"
+                      color="grey-7"
+                      outline
+                      icon="arrow_back"
+                      class="q-px-xl"
+                    />
+                    <q-btn
+                      label="Enviar Trámite"
+                      @click="submitForm"
+                      color="positive"
+                      icon-right="send"
+                      :loading="isLoading('submit')"
+                      class="q-px-xl text-weight-bold"
+                    />
                   </div>
                 </div>
               </div>
+            </q-step>
+          </q-stepper>
+        </div>
 
-              <!-- Términos y condiciones -->
-              <div class="q-mb-lg">
-                <q-checkbox
-                  v-model="form.acceptTerms"
-                  color="primary"
-                  :rules="[(val) => val === true || 'Debe aceptar los términos y condiciones']"
-                  class="q-mb-md"
-                >
-                  <div class="q-ml-sm">
-                    He leído y acepto los
-                    <a href="#" class="text-primary" @click.prevent="showTermsDialog = true">
-                      términos y condiciones
-                    </a>
-                    *
-                  </div>
-                </q-checkbox>
+        <!-- Diálogo de términos y condiciones -->
+        <q-dialog v-model="showTermsDialog" maximized>
+          <q-card>
+            <q-card-section class="row items-center q-pb-none">
+              <div class="text-h6">Términos y Condiciones</div>
+              <q-space />
+              <q-btn icon="close" flat round dense v-close-popup />
+            </q-card-section>
+
+            <q-card-section class="q-pt-none">
+              <!-- Aquí iría el contenido de términos y condiciones -->
+              <div class="text-body1">
+                <p>Al utilizar este servicio de mesa de partes digital, usted acepta:</p>
+                <ul>
+                  <li>Proporcionar información veraz y exacta</li>
+                  <li>Adjuntar solo documentos legítimos y necesarios</li>
+                  <li>Respetar los tiempos de respuesta establecidos</li>
+                  <li>No utilizar el sistema para fines ilícitos</li>
+                </ul>
               </div>
+            </q-card-section>
 
-              <!-- Botones finales -->
-              <div class="row justify-between q-mt-lg">
-                <q-btn
-                  label="Anterior"
-                  @click="step = 2"
-                  color="grey-7"
-                  outline
-                  icon="arrow_back"
-                  class="q-px-xl"
-                />
-                <q-btn
-                  label="Siguiente"
-                  type="submit"
-                  color="primary"
-                  icon-right="arrow_forward"
-                  :loading="isLoading('step3')"
-                  class="q-px-xl"
-                />
+            <q-card-actions align="right">
+              <q-btn flat label="Aceptar" color="primary" v-close-popup />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+
+        <!-- Diálogo de confirmación de envío -->
+        <q-dialog v-model="showSuccessDialog" persistent>
+          <q-card class="q-pa-lg text-center">
+            <q-card-section>
+              <q-icon name="check_circle" color="positive" size="64px" />
+              <div class="text-h5 text-bold text-positive q-mt-md">¡Trámite Enviado!</div>
+              <div class="text-subtitle1 q-mt-md">Su número de expediente es:</div>
+              <div class="text-h4 text-primary q-mt-sm q-pa-md bg-grey-1 rounded-borders">
+                {{ expedienteGenerado }}
               </div>
-            </q-form>
-          </div>
-        </q-step>
-
-        <!-- Paso 4: Confirmación -->
-        <q-step :name="4" title="Confirmación" icon="check_circle" :done="step > 4">
-          <div class="step-content">
-            <div class="text-h6 q-mb-lg text-center text-primary">
-              <q-icon name="assignment_turned_in" size="sm" class="q-mr-sm" />
-              Confirmar Envío del Trámite
-            </div>
-
-            <!-- Resumen del trámite -->
-            <div class="q-gutter-md">
-              <!-- Datos del remitente -->
-              <q-card flat bordered class="q-mb-md">
-                <q-card-section>
-                  <div class="text-h6 text-primary q-mb-md">
-                    <q-icon name="person" class="q-mr-sm" />
-                    Datos del Remitente
-                  </div>
-                  <div class="row q-gutter-sm">
-                    <div class="col-12 col-md-6">
-                      <div class="text-caption text-grey-7">Nombres y Apellidos</div>
-                      <div class="text-body1">
-                        {{ form.remitente_nombres }} {{ form.remitente_apellidos }}
-                      </div>
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <div class="text-caption text-grey-7">Documento</div>
-                      <div class="text-body1">{{ form.remitente_documento }}</div>
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <div class="text-caption text-grey-7">Correo Electrónico</div>
-                      <div class="text-body1">{{ form.remitente_email }}</div>
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <div class="text-caption text-grey-7">Celular</div>
-                      <div class="text-body1">{{ form.remitente_celular }}</div>
-                    </div>
-                  </div>
-                </q-card-section>
-              </q-card>
-
-              <!-- Datos del documento/trámite -->
-              <q-card flat bordered class="q-mb-md">
-                <q-card-section>
-                  <div class="text-h6 text-primary q-mb-md">
-                    <q-icon name="assignment" class="q-mr-sm" />
-                    Datos del Trámite
-                  </div>
-
-                  <!-- Si es TUPA -->
-                  <div v-if="!form.esOtroTramite && selectedTupaInfo">
-                    <div class="row q-gutter-sm">
-                      <div class="col-12">
-                        <div class="text-caption text-grey-7">Trámite TUPA</div>
-                        <div class="text-body1 text-weight-medium">
-                          {{ selectedTupaInfo.denominacion }}
-                        </div>
-                      </div>
-                      <div class="col-12" v-if="selectedTupaInfo.descripcion">
-                        <div class="text-caption text-grey-7">Descripción</div>
-                        <div class="text-body2">{{ selectedTupaInfo.descripcion }}</div>
-                      </div>
-                      <div class="col-12" v-if="selectedTupaInfo.unidad_organizativa_nombre">
-                        <div class="text-caption text-grey-7">Unidad Organizativa</div>
-                        <div class="text-body2">
-                          {{ selectedTupaInfo.unidad_organizativa_nombre }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Si es otro trámite -->
-                  <div v-else>
-                    <div class="row q-gutter-sm">
-                      <div class="col-12">
-                        <div class="text-caption text-grey-7">Tipo</div>
-                        <div class="text-body1">Otros Trámites</div>
-                      </div>
-                      <div class="col-12" v-if="form.documento?.tipo?.nombre">
-                        <div class="text-caption text-grey-7">Tipo de Documento</div>
-                        <div class="text-body1">{{ form.documento.tipo.nombre }}</div>
-                      </div>
-                      <div class="col-12" v-if="form.documento?.asunto">
-                        <div class="text-caption text-grey-7">Asunto</div>
-                        <div class="text-body1">{{ form.documento.asunto }}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Detalle común -->
-                  <div v-if="form.documento?.resumen" class="q-mt-md">
-                    <div class="text-caption text-grey-7">Detalle de la Solicitud</div>
-                    <div class="text-body2">{{ form.documento.resumen }}</div>
-                  </div>
-                </q-card-section>
-              </q-card>
-
-              <!-- Archivos adjuntos -->
-              <q-card flat bordered class="q-mb-md">
-                <q-card-section>
-                  <div class="text-h6 text-primary q-mb-md">
-                    <q-icon name="attach_file" class="q-mr-sm" />
-                    Documentos Adjuntos
-                  </div>
-
-                  <!-- Documento principal -->
-                  <div v-if="form.documento_principal" class="q-mb-md">
-                    <div class="text-subtitle2 q-mb-sm">Documento Principal:</div>
-                    <q-chip icon="description" color="primary" text-color="white">
-                      {{ form.documento_principal.name }}
-                      <q-tooltip>{{ formatFileSize(form.documento_principal.size) }}</q-tooltip>
-                    </q-chip>
-                  </div>
-
-                  <!-- Documentos adicionales -->
-                  <div v-if="form.documento?.archivos?.length">
-                    <div class="text-subtitle2 q-mb-sm">Documentos Adicionales:</div>
-                    <div class="q-gutter-xs">
-                      <q-chip
-                        v-for="(file, index) in form.documento.archivos"
-                        :key="index"
-                        icon="attachment"
-                        color="secondary"
-                        text-color="white"
-                      >
-                        {{ file.name }}
-                        <q-tooltip>{{ formatFileSize(file.size) }}</q-tooltip>
-                      </q-chip>
-                    </div>
-                  </div>
-                </q-card-section>
-              </q-card>
-
-              <!-- Aviso importante -->
-              <q-banner class="bg-orange-1 text-orange-8 q-mb-md" rounded>
-                <template v-slot:avatar>
-                  <q-icon name="warning" />
-                </template>
-                <div class="text-body2">
-                  <strong>Importante:</strong> Una vez enviado el trámite, recibirá un código de
-                  seguimiento en su correo electrónico. Guárdelo para hacer seguimiento de su
-                  solicitud.
-                </div>
-              </q-banner>
-
-              <!-- Botones -->
-              <div class="row justify-between q-mt-lg">
-                <q-btn
-                  label="Anterior"
-                  @click="step = 3"
-                  color="grey-7"
-                  outline
-                  icon="arrow_back"
-                  class="q-px-xl"
-                />
-                <q-btn
-                  label="Enviar Trámite"
-                  @click="submitForm"
-                  color="positive"
-                  icon-right="send"
-                  :loading="isLoading('submit')"
-                  class="q-px-xl text-weight-bold"
-                />
+              <div class="text-body2 text-grey-7 q-mt-md">
+                Conserve este número para realizar el seguimiento de su trámite
               </div>
-            </div>
-          </div>
-        </q-step>
-      </q-stepper>
-    </div>
+            </q-card-section>
 
-    <!-- Diálogo de términos y condiciones -->
-    <q-dialog v-model="showTermsDialog" maximized>
-      <q-card>
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">Términos y Condiciones</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <!-- Aquí iría el contenido de términos y condiciones -->
-          <div class="text-body1">
-            <p>Al utilizar este servicio de mesa de partes digital, usted acepta:</p>
-            <ul>
-              <li>Proporcionar información veraz y exacta</li>
-              <li>Adjuntar solo documentos legítimos y necesarios</li>
-              <li>Respetar los tiempos de respuesta establecidos</li>
-              <li>No utilizar el sistema para fines ilícitos</li>
-            </ul>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Aceptar" color="primary" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- Diálogo de confirmación de envío -->
-    <q-dialog v-model="showSuccessDialog" persistent>
-      <q-card class="q-pa-lg text-center">
-        <q-card-section>
-          <q-icon name="check_circle" color="positive" size="64px" />
-          <div class="text-h5 text-bold text-positive q-mt-md">¡Trámite Enviado!</div>
-          <div class="text-subtitle1 q-mt-md">Su número de expediente es:</div>
-          <div class="text-h4 text-primary q-mt-sm q-pa-md bg-grey-1 rounded-borders">
-            {{ expedienteGenerado }}
-          </div>
-          <div class="text-body2 text-grey-7 q-mt-md">
-            Conserve este número para realizar el seguimiento de su trámite
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="center" class="q-pt-none">
-          <q-btn label="Nuevo Trámite" color="primary" @click="resetForm" />
-          <q-btn label="Seguimiento" color="secondary" outline @click="goToSeguimiento" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-  </q-page>
+            <q-card-actions align="center" class="q-pt-none">
+              <q-btn label="Nuevo Trámite" color="primary" @click="resetForm" />
+              <q-btn label="Seguimiento" color="secondary" outline @click="goToSeguimiento" />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+      </q-page>
+    </q-page-container>
+  </q-layout>
 </template>
 
 <script setup>
