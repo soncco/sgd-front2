@@ -196,6 +196,7 @@ const menu = ref([
       { label: 'Acciones', route: '/acciones' },
       { label: 'Cargos', route: '/cargos' },
       { label: 'Personas', route: '/personas' },
+      { label: 'TUPA', route: '/tupas' },
       { label: 'Opciones del sistema', route: '/opciones' },
     ],
   },

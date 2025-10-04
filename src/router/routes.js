@@ -87,6 +87,19 @@ const routes = [
         props: true,
       },
       {
+        path: 'tupas',
+        component: () => import('src/pages/sistema/TupasPage.vue'),
+      },
+      {
+        path: 'tupa/nuevo',
+        component: () => import('src/pages/sistema/TupaForm.vue'),
+      },
+      {
+        path: 'tupa/editar/:id',
+        component: () => import('src/pages/sistema/TupaForm.vue'),
+        props: true,
+      },
+      {
         path: 'editarcontrasena',
         component: () => import('src/pages/EditarContraseña.vue'),
       },
