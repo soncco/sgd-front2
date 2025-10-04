@@ -94,8 +94,12 @@
       </template>
 
       <template v-slot:top>
-        <div class="row q-col-gutter-md" v-if="filters.length > 0">
-          <div v-for="filter in filters" class="col" v-bind:key="filter.field">
+        <div class="row q-col-gutter-md full-width" v-if="filters.length > 0">
+          <div
+            v-for="filter in filters"
+            :class="filter.type === 'date-range' ? 'col-md-4' : 'col-md-2' + ' col-12'"
+            v-bind:key="filter.field"
+          >
             <q-input
               v-if="filter.type === 'text'"
               v-model="tableFilters[filter.field]"

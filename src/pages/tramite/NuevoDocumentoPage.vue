@@ -5,7 +5,7 @@
       <q-form @submit.prevent="submitForm" class="q-gutter-md">
         <div class="row q-col-gutter-lg">
           <!-- INFORMACION -->
-          <div class="col-4 q-gutter-md">
+          <div class="col-md-4 col-12 q-gutter-md">
             <SimpleTitle title="Información" />
             <q-input
               outlined
@@ -77,7 +77,7 @@
             <APISelect
               v-model="info.tipo_documento"
               label="Tipo de documento"
-              url="/api/base/tipos-documento/"
+              url="/api/base/tipos_documento/"
               field="nombre"
               option-value="id"
               option-label="nombre"
@@ -108,7 +108,7 @@
           </div>
 
           <!-- Documento y destinatarios -->
-          <div class="col-8 q-gutter-md">
+          <div class="col-md-8 col-12 q-gutter-md">
             <SimpleTitle title="Documento" />
             <q-input
               outlined
@@ -232,7 +232,7 @@ const errores_texto = reactive({})
 
 const endpoint = '/api/tramite/expedientes/completo/'
 
-const urlPersonasConOficina = '/api/base/personas-con-oficina/'
+const urlPersonasConOficina = '/api/base/personas_con_oficina/'
 
 const today = new Date().toISOString().slice(0, 10)
 info.fecha_expediente = today
@@ -295,7 +295,7 @@ function removeDestinatario(index) {
 
 async function fetchNumeroExpediente() {
   try {
-    const res = await api.get('/api/tramite/expedientes/next-number/')
+    const res = await api.get('/api/tramite/expedientes/next_number/')
     info.expediente = res.data.next_number
   } catch (error) {
     console.error('Error al obtener número de expediente:', error)
@@ -313,7 +313,7 @@ async function fetchNumeroDocumento(tipo_id) {
   }
 
   try {
-    const res = await api.get('/api/tramite/documentos/next-number/', {
+    const res = await api.get('/api/tramite/documentos/next_number/', {
       params: { tipo_id },
     })
     info.numero = res.data.next_number
@@ -363,7 +363,6 @@ const submitForm = async () => {
     )
     formData.append('documento[asunto]', info.asunto)
     formData.append('documento[resumen]', '')
-    formData.append('documento[es_informativo]', false)
 
     info.destinatarios
       .filter((d) => d.persona !== null)

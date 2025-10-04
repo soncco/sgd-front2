@@ -44,7 +44,7 @@ const editTipoDocumento = (row) => {
 }
 
 const table = {
-  endpoint: '/api/base/tipos-documento/',
+  endpoint: '/api/base/tipos_documento/',
   columns,
   handleEdit: editTipoDocumento,
   filters,

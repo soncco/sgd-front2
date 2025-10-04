@@ -1,17 +1,41 @@
 const routes = [
   {
+    path: '/login',
+    children: [{ path: '', component: () => import('pages/LoginPage.vue') }],
+  },
+  {
+    path: '/mesa-de-partes',
+    children: [
+      {
+        path: '',
+        component: () => import('src/pages/tramite/MesaDePartes.vue'),
+      },
+    ],
+  },
+  {
+    path: '/seguimiento-publico',
+    children: [
+      {
+        path: '',
+        component: () => import('src/pages/tramite/SeguimientoPublico.vue'),
+      },
+    ],
+  },
+  {
+    path: '/expediente/:id/seguimiento-publico',
+    children: [
+      {
+        path: '',
+        component: () => import('src/pages/tramite/SeguimientoExpedientePage.vue'),
+      },
+    ],
+  },
+
+  {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
-      /*
-      { path: 'accion/nuevo', component: () => import('pages/sistema/NuevaAccion.vue') },
-      {
-        path: 'accion/editar/:id',
-        component: () => import('pages/sistema/EditarAccion.vue'),
-        props: true,
-      },
-      */
       // TRAMITES
       {
         path: 'tramite/nuevo',
@@ -28,29 +52,29 @@ const routes = [
         props: true,
       },
       { path: 'acciones', component: () => import('pages/sistema/AccionesPage.vue') },
-      { path: 'oficina/nuevo', component: () => import('pages/sistema/NuevaOficina.vue') },
+      { path: 'oficina/nuevo', component: () => import('pages/sistema/OficinaForm.vue') },
       {
         path: 'oficina/editar/:id',
-        component: () => import('pages/sistema/EditarOficina.vue'),
+        component: () => import('pages/sistema/OficinaForm.vue'),
         props: true,
       },
       { path: 'oficinas', component: () => import('pages/sistema/OficinasPage.vue') },
       {
         path: 'tipos-documento/nuevo',
-        component: () => import('pages/sistema/NuevoTipoDocumento.vue'),
+        component: () => import('pages/sistema/TipoDocumentoForm.vue'),
       },
       {
         path: 'tipos-documento/editar/:id',
-        component: () => import('pages/sistema/EditarTipoDocumento.vue'),
+        component: () => import('pages/sistema/TipoDocumentoForm.vue'),
         props: true,
       },
       {
         path: 'cargo/nuevo',
-        component: () => import('pages/sistema/NuevoCargo.vue'),
+        component: () => import('pages/sistema/CargoForm.vue'),
       },
       {
         path: 'cargo/editar/:id',
-        component: () => import('pages/sistema/EditarCargo.vue'),
+        component: () => import('pages/sistema/CargoForm.vue'),
         props: true,
       },
       { path: 'cargos', component: () => import('pages/sistema/CargosPage.vue') },
@@ -67,6 +91,12 @@ const routes = [
         component: () => import('src/pages/EditarContraseña.vue'),
       },
       { path: 'editarusuario', component: () => import('src/pages/EditarUsuario.vue') },
+      {
+        path: 'opciones',
+        component: () => import('pages/sistema/OpcionPage.vue'),
+        props: true,
+        meta: { requireLogin: true, groups: ['Administradores'] },
+      },
       { path: 'bandeja/entrada', component: () => import('src/pages/tramite/BandejaEntrada.vue') },
       { path: 'bandeja/salida', component: () => import('src/pages/tramite/BandejaSalida.vue') },
       {
@@ -90,67 +120,6 @@ const routes = [
       },
     ],
     meta: { requiresAuth: true },
-  },
-
-  {
-    path: '/mesa-de-partes',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [
-      {
-        path: '',
-        component: () => import('src/pages/tramite/MesaDePartes.vue'),
-      },
-    ],
-  },
-
-  {
-    path: '/seguimiento-publico',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [
-      {
-        path: '',
-        component: () => import('src/pages/tramite/SeguimientoPublico.vue'),
-      },
-    ],
-  },
-  {
-    path: '/expediente/:id/seguimiento-publico',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [
-      {
-        path: '',
-        component: () => import('src/pages/tramite/SeguimientoExpedientePage.vue'),
-        meta: { requiresAuth: false },
-      },
-    ],
-  },
-
-  {
-    path: '/login',
-    component: () => import('layouts/AuthLayout.vue'),
-    children: [{ path: '', component: () => import('pages/LoginPage.vue') }],
-  },
-  {
-    path: '/',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [
-      {
-        path: 'opciones',
-        component: () => import('pages/sistema/OpcionPage.vue'),
-        props: true,
-        meta: { requireLogin: true, groups: ['Administradores'] },
-      },
-    ],
-  },
-  {
-    path: '/test',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [
-      {
-        path: '',
-        component: () => import('pages/Test.vue'),
-      },
-    ],
   },
 
   {

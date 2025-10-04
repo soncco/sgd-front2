@@ -21,25 +21,46 @@ const titulo = {
 }
 const columns = [
   {
-    name: 'nombre_completo',
-    label: 'Nombre Completo',
+    name: 'nombres',
+    label: 'Nombres',
     align: 'left',
-    field: 'nombre_completo',
+    field: 'nombres',
+    sortable: true,
+  },
+  {
+    name: 'apellidos',
+    label: 'Apellidos',
+    align: 'left',
+    field: 'apellidos',
     sortable: true,
   },
   {
     name: 'tipo_documento',
-    label: 'Tipo de Documento',
-    align: 'left',
+    label: 'Tipo Doc.',
+    align: 'center',
     field: 'tipo_doc_display',
     sortable: true,
   },
   {
     name: 'documento',
-    label: 'Número de documento',
+    label: 'Documento',
     align: 'left',
     field: 'documento',
     sortable: true,
+  },
+  {
+    name: 'celular',
+    label: 'Celular',
+    align: 'left',
+    field: 'celular',
+    sortable: false,
+  },
+  {
+    name: 'email',
+    label: 'Email',
+    align: 'left',
+    field: 'email',
+    sortable: false,
   },
   { name: 'actions', label: 'Acciones', align: 'center' },
 ]
@@ -48,7 +69,7 @@ const filters = [
   {
     label: 'Buscar',
     type: 'text',
-    field: 'term',
+    field: 'search', // Según la documentación, el parámetro es 'search'
   },
   {
     label: 'Tipo de Documento',

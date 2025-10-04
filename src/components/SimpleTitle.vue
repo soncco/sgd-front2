@@ -9,7 +9,26 @@
 </template>
 
 <script setup>
+/**
+ * Componente para mostrar un título simple
+ *
+ * @component SimpleTitle
+ * @example
+ * <SimpleTitle title="Información Personal" />
+ */
+
+/**
+ * Props del componente SimpleTitle
+ */
 defineProps({
-  title: String,
-});
+  /**
+   * Título a mostrar
+   * @type {string}
+   * @required
+   */
+  title: {
+    type: String,
+    required: true,
+  },
+})
 </script>

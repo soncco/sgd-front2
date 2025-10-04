@@ -72,7 +72,7 @@ const filters = [
     label: 'Tipo de documento',
     type: 'api-select',
     field: 'documento__tipo',
-    endpoint: '/api/base/tipos-documento/',
+    endpoint: '/api/base/tipos_documento/',
     endpointName: 'nombre',
   },
   {
@@ -91,7 +91,7 @@ const filters = [
 ]
 
 const table = computed(() => ({
-  endpoint: '/api/tramite/bandeja-entrada/',
+  endpoint: '/api/tramite/bandeja_entrada/',
   columns,
   filters,
   multiActions: [

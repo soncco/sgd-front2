@@ -23,13 +23,69 @@
 </template>
 
 <script setup>
+/**
+ * Componente para mostrar el título de una página con botones de acción
+ *
+ * @component PageTitle
+ * @example
+ * <PageTitle
+ *   title="Gestión de Usuarios"
+ *   icon="people"
+ *   :buttons="[{label: 'Nuevo', route: '/usuario/nuevo', icon: 'add'}]"
+ * />
+ */
+
+/**
+ * Props del componente PageTitle
+ */
 defineProps({
-  title: String,
-  icon: String,
+  /**
+   * Título principal de la página
+   * @type {string}
+   */
+  title: {
+    type: String,
+    required: true,
+  },
+
+  /**
+   * Icono a mostrar junto al título (nombre de Material Icons)
+   * @type {string}
+   */
+  icon: {
+    type: String,
+    default: '',
+  },
+
+  /**
+   * Color del icono
+   * @type {string}
+   * @default 'primary'
+   */
   iconColor: {
     type: String,
-    default: "primary",
+    default: 'primary',
   },
-  buttons: Array,
-});
+
+  /**
+   * Array de botones a mostrar en la parte derecha del título
+   * @type {Array<Object>}
+   * @property {string} label - Texto del botón
+   * @property {string} route - Ruta a la que navegar al hacer clic
+   * @property {string} [icon] - Icono del botón (opcional)
+   * @property {string} [color] - Color del botón (opcional, default: 'primary')
+   *
+   * @example
+   * [{
+   *   label: 'Crear Nuevo',
+   *   route: '/crear',
+   *   icon: 'add',
+   *   color: 'secondary'
+   * }]
+   */
+  buttons: {
+    type: Array,
+    default: () => [],
+  },
+})
 </script>

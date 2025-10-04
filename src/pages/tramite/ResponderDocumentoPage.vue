@@ -51,7 +51,7 @@
             <APISelect
               v-model="info.tipo_documento"
               label="Tipo de documento"
-              url="/api/base/tipos-documento/"
+              url="/api/base/tipos_documento/"
               field="nombre"
               option-value="id"
               option-label="nombre"
@@ -284,7 +284,7 @@ async function fetchNumeroDocumento(tipo_id) {
   }
 
   try {
-    const res = await api.get('/api/tramite/documentos/next-number/', {
+    const res = await api.get('/api/tramite/documentos/next_number/', {
       params: { tipo_id },
     })
     info.numero = res.data.next_number
@@ -343,11 +343,9 @@ const submitForm = async () => {
       documento_padre: info.documento_padre,
       asunto: info.asunto,
       resumen: info.resumen, // Asegúrate de que este campo exista en tu reactive
-      es_informativo: false, // O el valor que corresponda
       destinos_documento: info.destinatarios.map((d) => ({
         destinatario: d.persona.id,
         oficina_destino: d.oficina.id,
-        es_delegacion: false, // O el valor que corresponda
       })),
     }
     console.log(payload)
@@ -365,12 +363,10 @@ const submitForm = async () => {
       formData.append('documento_padre', info.documento_padre || '')
       formData.append('asunto', info.asunto)
       formData.append('resumen', info.resumen)
-      formData.append('es_informativo', false)
 
       info.destinatarios.forEach((dest, index) => {
         formData.append(`destinos_documento[${index}][destinatario]`, dest.persona.id)
         formData.append(`destinos_documento[${index}][oficina_destino]`, dest.oficina.id)
-        formData.append(`destinos_documento[${index}][es_delegacion]`, false) // faltaba
       })
 
       info.archivos.forEach((file, index) => {

@@ -1,11 +1,11 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="lHh Lpr fff">
     <!-- HEADER -->
-    <q-header elevated class="bg-secondary" v-if="authStore.isAuthenticated">
+    <q-header elevated class="bg-amaris" v-if="authStore.isAuthenticated">
       <q-toolbar>
         <q-btn flat @click="drawer = !drawer" round dense icon="menu" />
         <q-toolbar-title>
-          <q-btn flat size="lg" to="/">SGD</q-btn>
+          <q-btn flat size="lg" to="/">AMARIS</q-btn>
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
@@ -29,19 +29,9 @@
           </div>
 
           <div class="column">
-            <!--
             <q-btn
-              color="warning"
-              text-color="black"
-              square
-              size="sm"
-              icon="edit"
-              :to="`/persona/editar/${getMe().persona}/`"
-            />
-            -->
-            <q-btn
-              color="negative"
-              text-color="black"
+              color="indigo-7"
+              text-color="white"
               square
               size="sm"
               icon="logout"
@@ -106,15 +96,86 @@
     <q-page-container>
       <router-view />
     </q-page-container>
+
+    <q-footer class="bg-grey-8 text-white">
+      <div class="footer-container">
+        <div class="row q-gutter-md">
+          <!-- Columna 1 - Información institucional -->
+          <div class="col-12 col-md-5">
+            <div class="institutional-info text-center text-md-left">
+              <div class="text-white text-weight-medium q-mb-xs">
+                <q-icon name="account_balance" class="q-mr-sm" />
+                {{ entityInfo }}
+              </div>
+              <div class="text-white text-opacity-80 text-body2">
+                <q-icon name="computer" class="q-mr-sm" />
+                AMARIS - Sistema de Gestión Documentaria
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna 2 - Información de soporte -->
+          <div class="col-12 col-md-3">
+            <div class="support-info text-center">
+              <div class="text-white text-weight-medium text-body2 q-mb-xs">
+                <q-icon name="support_agent" class="q-mr-sm" />
+                Soporte rápido
+              </div>
+              <div class="text-white text-opacity-80 text-caption q-mb-xs">
+                <q-icon name="phone" class="q-mr-xs" />
+                940-413-610 o 984-755-860
+              </div>
+              <div class="text-white text-opacity-80 text-caption">
+                <q-icon name="email" class="q-mr-xs" />
+                soporte@abastecimiento.pe
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna 3 - Información de desarrollo -->
+          <div class="col-12 col-md-3 col-md-offset-1">
+            <div class="developer-info text-center text-md-right">
+              <div class="text-white text-opacity-80 text-caption q-mb-xs">
+                <q-icon name="code" class="q-mr-xs" />
+                Hecho por <strong>soncco.com</strong>
+              </div>
+              <div class="text-white text-opacity-70 text-caption">
+                <q-icon name="copyright" class="q-mr-xs" />
+                Braulio A. Soncco Pimentel
+              </div>
+              <div class="text-white text-opacity-70 text-caption">RUC: 10409032597 © 2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </q-footer>
   </q-layout>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from 'src/stores/auth'
+import { useConfig } from 'src/composables/useConfig'
 
 const router = useRouter()
+
+const { entidad, tipo_entidad, loadEssentialConfig, loaded } = useConfig()
+
+// Cargar configuración esencial al montar el componente
+onMounted(async () => {
+  if (!loaded.value) {
+    await loadEssentialConfig()
+  }
+})
+
+// Información de la entidad (computed para reactividad)
+const entityInfo = computed(() => {
+  if (entidad.value && tipo_entidad.value) {
+    return `${tipo_entidad.value} ${entidad.value}`
+  }
+  return 'Entidad'
+})
 
 const drawer = ref(false)
 const menu = ref([
@@ -166,7 +227,7 @@ const onLogout = () => {
 }
 
 function avatar() {
-  return `https://api.dicebear.com/8.x/initials/svg?backgroundColor=26A69A&seed=${
+  return `https://api.dicebear.com/8.x/initials/svg?backgroundColor=0b5ea8&seed=${
     getMe()?.first_name || 'SGD'
   }`
 }
@@ -188,3 +249,69 @@ const filteredMenu = computed(() => {
   })
 })
 </script>
+
+<style scoped>
+/* Footer container */
+.footer-container {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Secciones del footer */
+.institutional-info,
+.support-info,
+.developer-info {
+  padding: 0.5rem;
+}
+
+/* Separadores visuales en desktop */
+@media (min-width: 1024px) {
+  .support-info {
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Opacidad de texto para jerarquía visual */
+.text-opacity-90 {
+  opacity: 0.9;
+}
+
+.text-opacity-80 {
+  opacity: 0.8;
+}
+
+.text-opacity-70 {
+  opacity: 0.7;
+}
+
+/* Estilos responsivos */
+@media (max-width: 1023px) {
+  .footer-container {
+    padding: 1rem;
+  }
+
+  /* En móviles, centrar todo el texto */
+  .institutional-info,
+  .support-info,
+  .developer-info {
+    text-align: center !important;
+    margin-bottom: 1rem;
+  }
+
+  .support-info {
+    border: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer-container {
+    padding: 0.75rem;
+  }
+}
+
+/* Asegurar que los iconos tengan buen espaciado */
+.q-icon {
+  font-size: 1.1em;
+}
+</style>

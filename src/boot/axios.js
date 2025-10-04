@@ -1,6 +1,9 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 
+// Variable para almacenar la instancia del router
+let router = null
+
 // Crear instancia de Axios
 const api = axios.create({ baseURL: process.env.BACKEND_URL })
 
@@ -32,10 +35,16 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${data.access}`
         return api(originalRequest)
       } catch (refreshError) {
-        // Si falla la renovación, redirigir al login
+        // Si falla la renovación, limpiar tokens y redirigir al login
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
-        window.location.href = '/login'
+
+        // Usar router si está disponible, sino usar window.location como fallback
+        if (router) {
+          router.push('/login')
+        } else {
+          window.location.href = '/login'
+        }
         return Promise.reject(refreshError)
       }
     }
@@ -43,7 +52,10 @@ api.interceptors.response.use(
   },
 )
 
-export default boot(({ app }) => {
+export default boot(({ app, router: appRouter }) => {
+  // Almacenar referencia al router para uso en interceptors
+  router = appRouter
+
   // Hacer que la instancia de Axios esté disponible globalmente
   app.config.globalProperties.$axios = api
   app.config.globalProperties.$api = api

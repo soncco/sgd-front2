@@ -1,1 +1,13 @@
 // app global css in SCSS form
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap');
+body {
+  font-family: 'Open Sans', sans-serif;
+}
+
+.bg-amaris {
+  background: #0b5ea8 !important;
+}
+
+.text-amaris {
+  color: #fff !important;
+}
