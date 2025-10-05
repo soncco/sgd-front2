@@ -3,30 +3,23 @@
     <div class="text-h6">{{ label }}:</div>
     <span class="editable" v-if="isCombo && selectedLabel">{{ selectedLabel }}</span>
     <div class="editable" v-else-if="valor">
-      {{ valor }}
+      {{ tipo != 'apiselect' ? valor : valorLabel }}
       <q-inner-loading :showing="isLoading" label="Cargando..." />
     </div>
-    <q-img
-      v-else-if="url && tipo !== 'combo'"
-      loading="lazy"
-      :src="url"
-      alt="Archivo"
-      style="max-width: 150px"
-    />
+    <q-img v-else-if="url" loading="lazy" :src="url" alt="Archivo" style="max-width: 150px" />
 
     <q-popup-edit v-model="valor" v-slot="scope">
-      <!-- APIELECT -->
+      <!-- APISELECT -->
 
       <div v-if="props.tipo === 'apiselect'">
         <APISelect
-          :url="props.apiurl"
           v-model="valor"
-          field="nombre"
           label="Selecciona una opción"
-          option-value="nombre"
-          option-label="nombre"
+          :url="props.apiUrl"
           dense
-          @update:model-value="onSelectChange"
+          :field="props.field"
+          @update:modelValue="onSelectChange"
+          :default-ids="[valor]"
         />
       </div>
 
@@ -53,7 +46,7 @@
           </template>
         </q-select>
       </div>
-      <div v-else-if="url && tipo !== 'combo'">
+      <div v-if="url">
         <q-file
           v-model="file"
           @keyup.enter="() => saveData(scope)"
@@ -77,7 +70,7 @@
         </q-file>
       </div>
       <q-input
-        v-else
+        v-if="tipo == 'text'"
         v-model="scope.value"
         dense
         autofocus
@@ -128,10 +121,12 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  apiurl: { type: String },
+  apiUrl: { type: String },
+  field: { type: [String, Function], default: 'nombre' },
 })
 
 const valor = ref('')
+const valorLabel = ref('')
 const url = ref(null)
 const file = ref(null)
 const isLoading = ref(false)
@@ -172,8 +167,14 @@ const fetchData = () => {
   api
     .get(urlWithParam)
     .then((response) => {
-      valor.value = response.data?.valor || ''
+      const responseValor = response.data?.valor || ''
+      valor.value = responseValor
       url.value = response.data?.url || null
+
+      if (props.tipo == 'apiselect' && props.apiUrl) {
+        // Si es apiselect, cargar el valor completo para mostrar el label
+        getLabelData()
+      }
       isLoading.value = false
     })
     .catch(() => {
@@ -184,11 +185,22 @@ const fetchData = () => {
 const saveData = (scope) => {
   if (props.tipo == 'apiselect') {
     valor.value = scope.value
+    getLabelData()
   } else if (url.value && props.tipo !== 'combo') {
     uploadFile(scope)
   } else {
     saveTextData(scope)
   }
+}
+
+const getLabelData = () => {
+  api.get(`${props.apiUrl}${valor.value}/`).then((response) => {
+    if (typeof props.field === 'function') {
+      valorLabel.value = props.field(response.data)
+    } else {
+      valorLabel.value = response.data[props.field]
+    }
+  })
 }
 
 const saveTextData = (scope) => {
