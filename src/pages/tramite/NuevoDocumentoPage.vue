@@ -131,7 +131,7 @@
                     :url="urlPersonasConOficina"
                     :field="
                       (item) =>
-                        `${item.persona.nombre_completo}: ${item.cargo.nombre} de ${item.oficina.nombre}`
+                        `${item.persona_nombre_completo}: ${item.cargo_nombre} de ${item.oficina_nombre}`
                     "
                     :option-value="(item) => item"
                     option-label="nombre_completo"
@@ -193,7 +193,7 @@
 </template>
 
 <script setup>
-import { reactive, onMounted, watch, ref } from 'vue'
+import { reactive, onMounted, watch } from 'vue'
 import { Notify, Loading } from 'quasar'
 import { useRouter } from 'vue-router'
 import { api } from 'src/boot/axios'
@@ -225,14 +225,12 @@ const info = reactive({
   archivosDescripciones: [],
 })
 
-const persona = ref({})
-
 const errores = reactive({})
 const errores_texto = reactive({})
 
 const endpoint = '/api/tramite/expedientes/completo/'
 
-const urlPersonasConOficina = '/api/base/personas_con_oficina/'
+const urlPersonasConOficina = '/api/base/asignaciones_activas/'
 
 const today = new Date().toISOString().slice(0, 10)
 info.fecha_expediente = today
@@ -247,16 +245,16 @@ const oficinaOptions = reactive({
 async function fetchPersonaActual() {
   try {
     await personaStore.initialize()
-    persona.value = personaStore.persona
 
-    info.remitente = `${persona.value.nombres} ${persona.value.apellidos}`
+    // Usar el getter del store para obtener el nombre completo
+    info.remitente = personaStore.nombreCompleto
 
-    const oficinas =
-      persona.value.asignaciones_cargo?.map((a) => ({
-        label: a.oficina_nombre,
-        value: a.oficina,
-      })) || []
-
+    // Usar el getter del store para obtener las oficinas
+    const oficinas = personaStore.oficinasAsignadas.map((oficina) => ({
+      label: oficina.nombre,
+      value: oficina.id,
+      asignacion_id: oficina.asignacion_id,
+    }))
     if (oficinas.length === 1) {
       info.oficina = oficinas[0].label
       oficinaOptions.readonly = true
@@ -351,24 +349,30 @@ const submitForm = async () => {
     const formData = new FormData()
     formData.append('numero', info.expediente)
     formData.append('estado', 'Abierto')
-    formData.append('responsable', persona.value.id)
+    formData.append('responsable', personaStore.persona.id)
 
     formData.append('documento[tipo]', info.tipo_documento?.id || info.tipo_documento || '')
-    formData.append('documento[remitente]', persona.value.id)
+    formData.append('documento[remitente]', personaStore.persona.id)
     formData.append('documento[numero]', info.numero)
-    formData.append(
-      'documento[asignacion_cargo]',
-      persona.value.asignaciones_cargo?.find((a) => a.oficina_nombre === info.oficina.label)?.id ||
-        '',
-    )
+
+    // Obtener la asignación correcta basada en la oficina seleccionada
+    let asignacionId = ''
+    if (typeof info.oficina === 'object' && info.oficina?.asignacion_id) {
+      asignacionId = info.oficina.asignacion_id
+    } else if (oficinaOptions.options.length > 0) {
+      const oficinaSel = oficinaOptions.options.find((o) => o.value === info.oficina)
+      asignacionId = oficinaSel?.asignacion_id || ''
+    }
+
+    formData.append('documento[asignacion_cargo]', asignacionId)
     formData.append('documento[asunto]', info.asunto)
     formData.append('documento[resumen]', '')
 
     info.destinatarios
       .filter((d) => d.persona !== null)
       .forEach((dest, index) => {
-        formData.append(`documento[destinos_documento][${index}][destinatario]`, dest.persona.id)
-        formData.append(`documento[destinos_documento][${index}][oficina_destino]`, dest.oficina.id)
+        formData.append(`documento[destinos_documento][${index}][destinatario]`, dest.persona_id)
+        formData.append(`documento[destinos_documento][${index}][oficina_destino]`, dest.oficina_id)
       })
 
     info.archivos.forEach((file, index) => {
